@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/Card';
 import { Alert, AlertDescription } from '@/components/ui/Alert';
-import Tabs, { TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs';
 import { UserRole, ResourceType, ResourceAction } from '@/lib/types/auth';
 import PermissionManagement from '@/components/admin/PermissionManagement/PermissionManagement';
 
