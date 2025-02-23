@@ -27,6 +27,55 @@ graph TD
 ### Component Structure
 
 ```typescript
+// Geographical Selection
+interface GeographicalSelectorProps {
+  value?: {
+    salesTheatre?: SalesTheatre;
+    regionId?: string;
+    countryId?: string;
+  };
+  onChange: (value: {
+    salesTheatre?: SalesTheatre;
+    regionId?: string;
+    countryId?: string;
+  }) => void;
+  disabled?: boolean;
+}
+
+const GeographicalSelector: React.FC<GeographicalSelectorProps> = () => {
+  // Implementation using cascading selects
+};
+
+// Location Display
+interface LocationDisplayProps {
+  salesTheatre?: SalesTheatre;
+  region?: Region;
+  country?: Country;
+  compact?: boolean;
+}
+
+const LocationDisplay: React.FC<LocationDisplayProps> = () => {
+  // Implementation with formatted display
+};
+
+// Geographical Filter
+interface GeographicalFilterProps {
+  value: {
+    salesTheatres?: SalesTheatre[];
+    regionIds?: string[];
+    countryIds?: string[];
+  };
+  onChange: (filters: {
+    salesTheatres?: SalesTheatre[];
+    regionIds?: string[];
+    countryIds?: string[];
+  }) => void;
+}
+
+const GeographicalFilter: React.FC<GeographicalFilterProps> = () => {
+  // Implementation with multi-select filters
+};
+
 // POV Overview
 interface POVOverviewProps {
   povId: string;

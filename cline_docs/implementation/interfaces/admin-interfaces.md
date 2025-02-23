@@ -253,6 +253,66 @@ const BulkUserActions: React.FC<BulkUserActionsProps> = () => {
 
 ## Advanced Features
 
+### Geographical Management
+
+```typescript
+// Region Management
+interface RegionManagerProps {
+  regions: Region[];
+  onAdd: (region: Region) => Promise<void>;
+  onUpdate: (id: string, updates: Partial<Region>) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}
+
+const RegionManager: React.FC<RegionManagerProps> = () => {
+  // Implementation
+};
+
+// Country Management
+interface CountryManagerProps {
+  countries: Country[];
+  regions: Region[];
+  onAdd: (country: Country) => Promise<void>;
+  onUpdate: (id: string, updates: Partial<Country>) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+}
+
+const CountryManager: React.FC<CountryManagerProps> = () => {
+  // Implementation
+};
+
+// Geographical Assignment
+interface GeographicalAssignmentProps {
+  povs: POV[];
+  onBulkUpdate: (updates: GeographicalUpdate[]) => Promise<void>;
+}
+
+interface GeographicalUpdate {
+  povId: string;
+  salesTheatre?: SalesTheatre;
+  regionId?: string;
+  countryId?: string;
+}
+
+const GeographicalAssignment: React.FC<GeographicalAssignmentProps> = () => {
+  // Implementation with bulk assignment capabilities
+};
+
+// Geographical Analytics
+interface GeographicalAnalyticsProps {
+  data: {
+    byTheatre: Record<SalesTheatre, number>;
+    byRegion: Record<string, number>;
+    byCountry: Record<string, number>;
+  };
+  onDateRangeChange: (range: DateRange) => void;
+}
+
+const GeographicalAnalytics: React.FC<GeographicalAnalyticsProps> = () => {
+  // Implementation with charts and metrics
+};
+```
+
 ### Custom Field Configuration
 
 ```typescript

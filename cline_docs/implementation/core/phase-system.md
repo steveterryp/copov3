@@ -86,7 +86,7 @@ enum TaskStatus {
 model Phase {
   id          String      @id @default(cuid())
   povId       String
-  pov         POV         @relation(fields: [povId], references: [id])
+  pov         POV         @relation(fields: [povId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   typeId      String
   type        PhaseType   @relation(fields: [typeId], references: [id])
   name        String
@@ -107,7 +107,7 @@ model Phase {
 model Stage {
   id          String      @id @default(cuid())
   phaseId     String
-  phase       Phase       @relation(fields: [phaseId], references: [id])
+  phase       Phase       @relation(fields: [phaseId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   name        String
   description String?
   status      StageStatus @default(PENDING)
@@ -124,7 +124,7 @@ model Stage {
 model Task {
   id          String     @id @default(cuid())
   stageId     String
-  stage       Stage      @relation(fields: [stageId], references: [id])
+  stage       Stage      @relation(fields: [stageId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   name        String
   description String?
   status      TaskStatus @default(TODO)

@@ -11,28 +11,87 @@ The Point of View (POV) system is the core entity that manages project definitio
 ```typescript
 interface POV {
   id: string;
-  name: string;
+  title: string;
   description: string;
   status: POVStatus;
-  owner: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  team: TeamMember[];
-  phases: Phase[];
-  kpis: KPI[];
-  metadata: Record<string, unknown>;
+  priority: Priority;
+  startDate: Date;
+  endDate: Date;
+  objective?: string;
+  dealId?: string;
+  opportunityName?: string;
+  revenue?: number;
+  forecastDate?: Date;
+  customerName?: string;
+  customerContact?: string;
+  partnerName?: string;
+  partnerContact?: string;
+  competitors?: string[];
+  solution?: string;
+  lastCrmSync?: Date;
+  crmSyncStatus?: string;
+  documents?: Record<string, unknown>;
+  featureRequests?: Record<string, unknown>;
+  supportTickets?: Record<string, unknown>;
+  blockers?: Record<string, unknown>;
+  tags?: string[];
+  estimatedBudget?: number;
+  budgetDocument?: string;
+  resources?: Record<string, unknown>;
+  salesTheatre?: SalesTheatre;
+  countryId?: string;
+  regionId?: string;
+  ownerId: string;
+  teamId?: string;
+  metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
+  
+  // Relations
+  country?: Country;
+  region?: Region;
 }
 
 enum POVStatus {
-  DRAFT = 'DRAFT',
+  PROJECTED = 'PROJECTED',
   ACTIVE = 'ACTIVE',
   ON_HOLD = 'ON_HOLD',
   COMPLETED = 'COMPLETED',
   ARCHIVED = 'ARCHIVED'
+}
+
+enum Priority {
+  HIGH = 'HIGH',
+  MEDIUM = 'MEDIUM',
+  LOW = 'LOW'
+}
+
+enum SalesTheatre {
+  NORTH_AMERICA = 'NORTH_AMERICA',
+  LAC = 'LAC',
+  EMEA = 'EMEA',
+  APJ = 'APJ'
+}
+
+interface Region {
+  id: string;
+  name: string;
+  description?: string;
+  countries: Country[];
+  povs: POV[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface Country {
+  id: string;
+  name: string;
+  code: string;
+  regionId: string;
+  region: Region;
+  povs: POV[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 interface TeamMember {
@@ -48,21 +107,55 @@ interface TeamMember {
 
 ```prisma
 model POV {
-  id          String     @id @default(cuid())
-  name        String
-  description String?
-  status      POVStatus  @default(DRAFT)
-  ownerId     String
-  owner       User       @relation("POVOwner", fields: [ownerId], references: [id])
-  team        TeamMember[]
-  phases      Phase[]
-  kpis        KPI[]
-  metadata    Json?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id              String    @id
+  title           String
+  description     String
+  status          POVStatus @default(PROJECTED)
+  priority        Priority  @default(MEDIUM)
+  startDate       DateTime
+  endDate         DateTime
+  objective       String?
+  dealId          String?
+  opportunityName String?
+  revenue         Decimal?
+  forecastDate    DateTime?
+  customerName    String?
+  customerContact String?
+  partnerName     String?
+  partnerContact  String?
+  competitors     String[]
+  solution        String?
+  lastCrmSync     DateTime?
+  crmSyncStatus   String?
+  documents       Json?
+  featureRequests Json?
+  supportTickets  Json?
+  blockers        Json?
+  tags            String[]
+  estimatedBudget Decimal?
+  budgetDocument  String?
+  resources       Json?
+  ownerId         String
+  teamId          String?
+  metadata        Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  team  Team? @relation(fields: [teamId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  crmSyncHistory CRMSyncHistory[]
+  milestones     Milestone[]
+  povKPIs        POVKPI[]
+  povLaunch      POVLaunch[]
+  phases         Phase[]
+  workflows      Workflow[]
+  tasks          Task[]
+
+  @@index([lastCrmSync])
   @@index([ownerId])
-  @@index([status])
+  @@index([status, priority])
+  @@index([teamId])
 }
 
 model TeamMember {
