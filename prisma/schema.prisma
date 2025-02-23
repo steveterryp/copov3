@@ -7,6 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Geographical Models
+
 model PhaseTemplate {
   id          String    @id @default(cuid())
   name        String
@@ -212,15 +214,22 @@ model POV {
   estimatedBudget Decimal?
   budgetDocument  String?
   resources       Json?
+  salesTheatre    SalesTheatre?
+  countryId       String?
+  regionId        String?
   ownerId         String
   teamId          String?
   metadata        Json?
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  
+  // Relations
   syncHistory     CRMSyncHistory[]
   milestones      Milestone[]
   owner           User             @relation("POVOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   team            Team?            @relation(fields: [teamId], references: [id])
+  country         Country?         @relation(fields: [countryId], references: [id])
+  region          Region?          @relation(fields: [regionId], references: [id])
   kpis            POVKPI[]
   launch          POVLaunch?
   phases          Phase[]
@@ -231,6 +240,9 @@ model POV {
   @@index([ownerId])
   @@index([teamId])
   @@index([lastCrmSync])
+  @@index([countryId])
+  @@index([regionId])
+  @@index([salesTheatre])
 }
 
 model TeamMember {
@@ -550,4 +562,34 @@ enum WorkflowType {
   PHASE_APPROVAL
   TASK_APPROVAL
   CUSTOM
+}
+
+enum SalesTheatre {
+  NORTH_AMERICA
+  LAC
+  EMEA
+  APJ
+}
+
+model Region {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  countries   Country[]
+  povs        POV[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Country {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  code        String   @unique
+  regionId    String
+  region      Region   @relation(fields: [regionId], references: [id])
+  povs        POV[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([regionId])
 }
