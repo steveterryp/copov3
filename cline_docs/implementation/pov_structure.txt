@@ -1,0 +1,54 @@
+                                         Table "public.POV"
+     Column      |              Type              | Collation | Nullable |         Default          
+-----------------+--------------------------------+-----------+----------+--------------------------
+ id              | text                           |           | not null | 
+ title           | text                           |           | not null | 
+ description     | text                           |           | not null | 
+ status          | "POVStatus"                    |           | not null | 'PROJECTED'::"POVStatus"
+ priority        | "Priority"                     |           | not null | 'MEDIUM'::"Priority"
+ startDate       | timestamp(3) without time zone |           | not null | 
+ endDate         | timestamp(3) without time zone |           | not null | 
+ objective       | text                           |           |          | 
+ dealId          | text                           |           |          | 
+ opportunityName | text                           |           |          | 
+ revenue         | numeric(65,30)                 |           |          | 
+ forecastDate    | timestamp(3) without time zone |           |          | 
+ customerName    | text                           |           |          | 
+ customerContact | text                           |           |          | 
+ partnerName     | text                           |           |          | 
+ partnerContact  | text                           |           |          | 
+ competitors     | text[]                         |           |          | 
+ solution        | text                           |           |          | 
+ lastCrmSync     | timestamp(3) without time zone |           |          | 
+ crmSyncStatus   | text                           |           |          | 
+ documents       | jsonb                          |           |          | 
+ featureRequests | jsonb                          |           |          | 
+ supportTickets  | jsonb                          |           |          | 
+ blockers        | jsonb                          |           |          | 
+ tags            | text[]                         |           |          | 
+ estimatedBudget | numeric(65,30)                 |           |          | 
+ budgetDocument  | text                           |           |          | 
+ resources       | jsonb                          |           |          | 
+ ownerId         | text                           |           | not null | 
+ teamId          | text                           |           |          | 
+ metadata        | jsonb                          |           |          | 
+ createdAt       | timestamp(3) without time zone |           | not null | CURRENT_TIMESTAMP
+ updatedAt       | timestamp(3) without time zone |           | not null | 
+Indexes:
+    "POV_pkey" PRIMARY KEY, btree (id)
+    "POV_lastCrmSync_idx" btree ("lastCrmSync")
+    "POV_ownerId_idx" btree ("ownerId")
+    "POV_status_priority_idx" btree (status, priority)
+    "POV_teamId_idx" btree ("teamId")
+Foreign-key constraints:
+    "POV_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"(id) ON UPDATE CASCADE ON DELETE CASCADE
+    "POV_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"(id) ON UPDATE CASCADE ON DELETE SET NULL
+Referenced by:
+    TABLE ""CRMSyncHistory"" CONSTRAINT "CRMSyncHistory_povId_fkey" FOREIGN KEY ("povId") REFERENCES "POV"(id) ON UPDATE CASCADE ON DELETE CASCADE
+    TABLE ""Milestone"" CONSTRAINT "Milestone_povId_fkey" FOREIGN KEY ("povId") REFERENCES "POV"(id) ON UPDATE CASCADE ON DELETE CASCADE
+    TABLE ""POVKPI"" CONSTRAINT "POVKPI_povId_fkey" FOREIGN KEY ("povId") REFERENCES "POV"(id) ON UPDATE CASCADE ON DELETE CASCADE
+    TABLE ""POVLaunch"" CONSTRAINT "POVLaunch_povId_fkey" FOREIGN KEY ("povId") REFERENCES "POV"(id) ON UPDATE CASCADE ON DELETE CASCADE
+    TABLE ""Phase"" CONSTRAINT "Phase_povId_fkey" FOREIGN KEY ("povId") REFERENCES "POV"(id) ON UPDATE CASCADE ON DELETE CASCADE
+    TABLE ""Workflow"" CONSTRAINT "Workflow_povId_fkey" FOREIGN KEY ("povId") REFERENCES "POV"(id) ON UPDATE CASCADE ON DELETE CASCADE
+    TABLE "tasks" CONSTRAINT "tasks_pov_id_fkey" FOREIGN KEY (pov_id) REFERENCES "POV"(id) ON UPDATE CASCADE ON DELETE SET NULL
+

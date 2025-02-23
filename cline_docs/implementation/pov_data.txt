@@ -1,0 +1,7 @@
+  id   |          title           |                description                 |   status    | priority |       startDate        |        endDate         | customerName | customerContact | partnerName | partnerContact | competitors | solution | estimatedBudget | owner_name | team_name | phase_count | task_count 
+-------+--------------------------+--------------------------------------------+-------------+----------+------------------------+------------------------+--------------+-----------------+-------------+----------------+-------------+----------+-----------------+------------+-----------+-------------+------------
+ pov-2 | Security Assessment POV  | Security assessment for new infrastructure | PROJECTED   | MEDIUM   | 2025-03-07 03:29:06.35 | 2025-04-06 03:29:06.35 |              |                 |             |                |             |          |                 | Admin User | Core Team |           0 |          0
+ pov-3 | Network Optimization POV | Network performance optimization project   | WON         | MEDIUM   | 2025-01-22 03:29:06.35 | 2025-02-16 03:29:06.35 |              |                 |             |                |             |          |                 | Admin User | Core Team |           1 |          0
+ pov-1 | Cloud Migration POV      | Evaluating cloud migration solutions       | IN_PROGRESS | HIGH     | 2025-02-21 03:29:06.35 | 2025-03-23 03:29:06.35 |              |                 |             |                |             |          |                 | Admin User | Core Team |           1 |          0
+(3 rows)
+
