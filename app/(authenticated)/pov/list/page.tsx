@@ -5,18 +5,33 @@ import { Loader2 } from 'lucide-react';
 import { POVList } from '@/components/pov/POVList';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { UserRole } from '@/lib/types/auth';
+import { SalesTheatre } from '@prisma/client';
+import { GeographicalSelect } from '@/components/ui/GeographicalSelect';
+import { Card, CardContent } from '@/components/ui/Card';
 
 export default function POVListPage() {
   const [povs, setPovs] = React.useState([]);
+  interface GeoFilters {
+    salesTheatre?: SalesTheatre;
+    regionId?: string;
+    countryId?: string;
+  }
+
+  const [filters, setFilters] = React.useState<GeoFilters>({});
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<Error | null>(null);
   const { user, hasRole } = useAuth();
   const isAdmin = user && hasRole(UserRole.ADMIN);
 
   React.useEffect(() => {
-    async function fetchPOVs() {
+    async function fetchPOVs(filters: GeoFilters) {
       try {
-        const response = await fetch('/api/pov');
+        const params = new URLSearchParams();
+        if (filters.salesTheatre) params.append('salesTheatre', filters.salesTheatre);
+        if (filters.regionId) params.append('regionId', filters.regionId);
+        if (filters.countryId) params.append('countryId', filters.countryId);
+
+        const response = await fetch(`/api/pov?${params.toString()}`);
         if (!response.ok) {
           throw new Error('Failed to fetch POVs');
         }
@@ -29,8 +44,8 @@ export default function POVListPage() {
       }
     }
 
-    fetchPOVs();
-  }, []);
+    fetchPOVs(filters);
+  }, [filters]);
 
   if (loading) {
     return (
@@ -60,6 +75,23 @@ export default function POVListPage() {
             : 'View and manage your POVs and team collaborations'}
         </p>
       </div>
+
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <GeographicalSelect
+            selectedTheatre={filters.salesTheatre}
+            selectedRegion={filters.regionId}
+            selectedCountry={filters.countryId}
+            onChange={({ theatre, regionId, countryId }) => {
+              setFilters({
+                salesTheatre: theatre,
+                regionId,
+                countryId,
+              });
+            }}
+          />
+        </CardContent>
+      </Card>
 
       <POVList povs={povs} />
     </div>
