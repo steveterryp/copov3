@@ -1,0 +1,38 @@
+model POV {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  status      POVStatus @default(DRAFT)
+  priority    Priority  @default(MEDIUM)
+  startDate   DateTime
+  endDate     DateTime
+  ownerId     String
+  teamId      String?
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  owner  User    @relation("POVOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  team   Team?   @relation(fields: [teamId], references: [id])
+  phases Phase[]
+  tasks  Task[]
+}
+
+model Phase {
+  id          String    @id @default(cuid())
+  name        String
+  description String
+  type        PhaseType @default(PLANNING)
+  startDate   DateTime
+  endDate     DateTime
+  order       Int
+  povId       String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  pov   POV    @relation(fields: [povId], references: [id], onDelete: Cascade)
+  tasks Task[]
+}
+

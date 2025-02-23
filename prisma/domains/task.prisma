@@ -1,0 +1,69 @@
+model Task {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  assigneeId  String?     @map("assignee_id")
+  teamId      String?     @map("team_id")
+  povId       String?     @map("pov_id")
+  phaseId     String?     @map("phase_id")
+  dueDate     DateTime?   @map("due_date")
+  priority    TaskPriority @default(MEDIUM)
+  status      TaskStatus   @default(OPEN)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  assignee    User?         @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  team        Team?         @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  pov         POV?          @relation(fields: [povId], references: [id], onDelete: SetNull)
+  phase       Phase?        @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+  comments    Comment[]
+  attachments Attachment[]
+  activities  TaskActivity[]
+
+  @@map("tasks")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  taskId    String   @map("task_id")
+  userId    String   @map("user_id")
+  text      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model Attachment {
+  id         String   @id @default(cuid())
+  taskId     String   @map("task_id")
+  filename   String
+  fileSize   Int      @map("file_size")
+  fileType   String   @map("file_type")
+  storageUrl String   @map("storage_url")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("attachments")
+}
+
+model TaskActivity {
+  id        String   @id @default(cuid())
+  taskId    String   @map("task_id")
+  userId    String   @map("user_id")
+  action    String
+  timestamp DateTime @default(now())
+
+  // Relations
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("task_activities")
+}
+

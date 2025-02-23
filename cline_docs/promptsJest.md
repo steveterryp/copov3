@@ -1,0 +1,2 @@
+### okay, our boss has noticed we are progressing, but he reminded me that we need to bring on our coding superpower to fix these issues so we can be in the running for free Friday night drinks. Let's go brilliant mode and fix these errors below;
+### keeping with our successful approach, is there any reason why we can't fix these errors ? Provide three paths to success and associated probabilities

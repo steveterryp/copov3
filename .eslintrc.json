@@ -1,0 +1,12 @@
+{
+  "extends": [
+    "next/core-web-vitals"
+  ],
+  "rules": {
+    "react/jsx-pascal-case": "error",
+    "react/display-name": "error",
+    "react/react-in-jsx-scope": "off",
+    "react/function-component-definition": "off",
+    "import/no-unresolved": "off"
+  }
+}

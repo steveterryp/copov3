@@ -1,0 +1,6 @@
+When using the browser, use this as the Admin user admin@example.com:admin123, and a standard test user rika@example.com:Rikrik123!
+When starting a new task, run the get_current_time tool with {"timezone": "Australia/Sydney", "format": "full"} as the arguments.
+When using Browser, launch the browser and ALWAYS check network requests and console logs.
+When the user asks to create a commit, if there are many changes, organize these into logical commits.
+When creating or modifying an API for database operations, use Prisma's built-in distinct functionality instead of direct SQL
+When editing a file more than 200 lines, to avoid truncation, try a different approach by making smaller, targeted changes to the file using replace_in_file.

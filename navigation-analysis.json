@@ -1,0 +1,616 @@
+{
+  "routes": [
+    {
+      "path": "/register",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/login",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/dashboard",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/auth/forgot-password",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/auth/reset-password",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/auth/login",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/admin/audit",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/admin/dashboard",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/admin/crm",
+      "component": "page.tsx",
+      "auth": false,
+      "layout": "layout.tsx"
+    },
+    {
+      "path": "/pov/list",
+      "component": "page.tsx",
+      "auth": true
+    },
+    {
+      "path": "/pov/create",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/admin/crm/mapping",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/pov/:povId/edit",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/admin/crm/settings",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/pov/:povId/launch/checklist",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/pov/:povId/kpi/templates",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/pov/:povId/launch/status",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/pov/:povId/kpi/:kpiId",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/admin/crm/sync",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/pov/:povId",
+      "component": "page.tsx",
+      "auth": true,
+      "layout": "layout.tsx"
+    },
+    {
+      "path": "/pov/:povId/phase/new",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/pov/:povId/phases/:phaseId",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/pov/:povId/phases/templates",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/pov/:povId/phase/:phaseId/edit",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/pov/:povId/phase/:phaseId/tasks",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/pov/:povId/phase/:phaseId/task/new",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/pov/:povId/phase/:phaseId/task/:taskId/edit",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/admin",
+      "component": "page.tsx",
+      "auth": false,
+      "layout": "layout.tsx"
+    },
+    {
+      "path": "/admin/permissions",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/admin/roles",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/admin/phases",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/admin/users",
+      "component": "page.tsx",
+      "auth": true
+    },
+    {
+      "path": "/support/feature",
+      "component": "page.tsx",
+      "auth": true
+    },
+    {
+      "path": "/profile",
+      "component": "page.tsx",
+      "auth": true
+    },
+    {
+      "path": "/support/request",
+      "component": "page.tsx",
+      "auth": true
+    },
+    {
+      "path": "/test-auth",
+      "component": "page.tsx",
+      "auth": false
+    },
+    {
+      "path": "/",
+      "component": "page.tsx",
+      "auth": false,
+      "layout": "layout.tsx"
+    }
+  ],
+  "navigationLinks": [
+    {
+      "path": "{item.href}",
+      "label": "Unnamed Link",
+      "component": "AdminNav.tsx",
+      "location": "components/layout/AdminNav.tsx"
+    },
+    {
+      "path": "{item.href}",
+      "label": "Unnamed Link",
+      "component": "MobileNav.tsx",
+      "location": "components/layout/MobileNav.tsx"
+    }
+  ],
+  "issues": [
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/register\" is not linked from any navigation",
+      "location": "/register",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/login\" is not linked from any navigation",
+      "location": "/login",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/dashboard\" is not linked from any navigation",
+      "location": "/dashboard",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/auth/forgot-password\" is not linked from any navigation",
+      "location": "/auth/forgot-password",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/auth/reset-password\" is not linked from any navigation",
+      "location": "/auth/reset-password",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/auth/login\" is not linked from any navigation",
+      "location": "/auth/login",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/admin/audit\" is not linked from any navigation",
+      "location": "/admin/audit",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/admin/dashboard\" is not linked from any navigation",
+      "location": "/admin/dashboard",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/admin/crm\" is not linked from any navigation",
+      "location": "/admin/crm",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/pov/list\" is not linked from any navigation",
+      "location": "/pov/list",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/pov/create\" is not linked from any navigation",
+      "location": "/pov/create",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/admin/crm/mapping\" is not linked from any navigation",
+      "location": "/admin/crm/mapping",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/pov/:povId/edit\" is not linked from any navigation",
+      "location": "/pov/:povId/edit",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/admin/crm/settings\" is not linked from any navigation",
+      "location": "/admin/crm/settings",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/pov/:povId/launch/checklist\" is not linked from any navigation",
+      "location": "/pov/:povId/launch/checklist",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/pov/:povId/kpi/templates\" is not linked from any navigation",
+      "location": "/pov/:povId/kpi/templates",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/pov/:povId/launch/status\" is not linked from any navigation",
+      "location": "/pov/:povId/launch/status",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/pov/:povId/kpi/:kpiId\" is not linked from any navigation",
+      "location": "/pov/:povId/kpi/:kpiId",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/admin/crm/sync\" is not linked from any navigation",
+      "location": "/admin/crm/sync",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/pov/:povId\" is not linked from any navigation",
+      "location": "/pov/:povId",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/pov/:povId/phase/new\" is not linked from any navigation",
+      "location": "/pov/:povId/phase/new",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/pov/:povId/phases/:phaseId\" is not linked from any navigation",
+      "location": "/pov/:povId/phases/:phaseId",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/pov/:povId/phases/templates\" is not linked from any navigation",
+      "location": "/pov/:povId/phases/templates",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/pov/:povId/phase/:phaseId/edit\" is not linked from any navigation",
+      "location": "/pov/:povId/phase/:phaseId/edit",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/pov/:povId/phase/:phaseId/tasks\" is not linked from any navigation",
+      "location": "/pov/:povId/phase/:phaseId/tasks",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/pov/:povId/phase/:phaseId/task/new\" is not linked from any navigation",
+      "location": "/pov/:povId/phase/:phaseId/task/new",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/pov/:povId/phase/:phaseId/task/:taskId/edit\" is not linked from any navigation",
+      "location": "/pov/:povId/phase/:phaseId/task/:taskId/edit",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/admin\" is not linked from any navigation",
+      "location": "/admin",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/admin/permissions\" is not linked from any navigation",
+      "location": "/admin/permissions",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/admin/roles\" is not linked from any navigation",
+      "location": "/admin/roles",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/admin/phases\" is not linked from any navigation",
+      "location": "/admin/phases",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/admin/users\" is not linked from any navigation",
+      "location": "/admin/users",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/support/feature\" is not linked from any navigation",
+      "location": "/support/feature",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/profile\" is not linked from any navigation",
+      "location": "/profile",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/support/request\" is not linked from any navigation",
+      "location": "/support/request",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/test-auth\" is not linked from any navigation",
+      "location": "/test-auth",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    },
+    {
+      "type": "ORPHANED_PAGE",
+      "description": "Page \"/\" is not linked from any navigation",
+      "location": "/",
+      "severity": "MEDIUM",
+      "suggestions": [
+        "Add a link to this page in appropriate navigation",
+        "Consider if this page should be accessible directly",
+        "Check if this is an old/unused page that can be removed"
+      ]
+    }
+  ]
+}

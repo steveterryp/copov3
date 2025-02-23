@@ -1,0 +1,12 @@
+model Activity {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  type      String
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+

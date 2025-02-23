@@ -1,0 +1,27 @@
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum SupportRequestPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum FeatureRequestImpact {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+

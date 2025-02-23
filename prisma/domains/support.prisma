@@ -1,0 +1,32 @@
+model SupportRequest {
+  id          String                @id @default(cuid())
+  userId      String
+  type        String
+  priority    SupportRequestPriority @default(MEDIUM)
+  subject     String
+  description String
+  status      SupportRequestStatus   @default(OPEN)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  // Relations
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model FeatureRequest {
+  id           String                @id @default(cuid())
+  userId       String
+  category     String
+  impact       FeatureRequestImpact  @default(MEDIUM)
+  title        String
+  description  String
+  businessCase String
+  isUrgent     Boolean              @default(false)
+  status       FeatureRequestStatus  @default(PENDING)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  // Relations
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+

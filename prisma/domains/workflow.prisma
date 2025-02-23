@@ -1,0 +1,57 @@
+// Workflow Domain Models
+
+enum WorkflowType {
+  POV_APPROVAL
+  PHASE_APPROVAL
+  TASK_APPROVAL
+  CUSTOM
+}
+
+enum WorkflowStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+enum WorkflowStepStatus {
+  PENDING
+  IN_PROGRESS
+  APPROVED
+  REJECTED
+  SKIPPED
+}
+
+// Add this to POV model in main schema:
+// workflows Workflow[]
+
+model Workflow {
+  id        String         @id @default(cuid())
+  type      WorkflowType
+  status    WorkflowStatus @default(PENDING)
+  povId     String
+  pov       POV            @relation(fields: [povId], references: [id], onDelete: Cascade)
+  steps     WorkflowStep[]
+  metadata  Json?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([povId])
+}
+
+model WorkflowStep {
+  id         String            @id @default(cuid())
+  name       String
+  order      Int
+  status     WorkflowStepStatus @default(PENDING)
+  role       String
+  workflowId String
+  workflow   Workflow          @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  metadata   Json?
+  comment    String?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  @@index([workflowId])
+}
