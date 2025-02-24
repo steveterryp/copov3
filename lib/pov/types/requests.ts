@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { POVStatus, PhaseType, Priority, PoVMetadata, PoVSummary, PoVDetails, Phase, PhaseDetails } from './core';
+import { SalesTheatre } from '@prisma/client';
 
 // Request Types
 export interface CreatePoVRequest {
@@ -10,6 +11,9 @@ export interface CreatePoVRequest {
   startDate: Date;
   endDate: Date;
   metadata: PoVMetadata;
+  salesTheatre: SalesTheatre;  // Required
+  countryId: string;           // Required
+  regionId?: string;           // Optional
 }
 
 export interface UpdatePoVRequest {
@@ -21,6 +25,9 @@ export interface UpdatePoVRequest {
   endDate?: Date;
   metadata?: Partial<PoVMetadata>;
   teamMembers?: string[];
+  salesTheatre?: SalesTheatre;
+  countryId?: string;
+  regionId?: string;
 }
 
 export interface CreatePhaseRequest {
@@ -123,6 +130,13 @@ export const createPoVSchema = z.object({
     successCriteria: z.string(),
     technicalRequirements: z.string(),
   }),
+  salesTheatre: z.nativeEnum(SalesTheatre, {
+    required_error: 'Sales Theatre is required',
+  }),
+  countryId: z.string({
+    required_error: 'Country is required',
+  }),
+  regionId: z.string().optional(),
 });
 
 export const updatePoVSchema = createPoVSchema.partial();

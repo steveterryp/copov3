@@ -1,7 +1,7 @@
-import { POVStatus, Priority, PhaseType, TaskStatus, TaskPriority, KPIType, Prisma } from '@prisma/client';
+import { POVStatus, Priority, PhaseType, TaskStatus, TaskPriority, KPIType, Prisma, SalesTheatre } from '@prisma/client';
 
 // Re-export prisma types
-export { POVStatus, Priority, PhaseType, TaskStatus, TaskPriority, KPIType };
+export { POVStatus, Priority, PhaseType, TaskStatus, TaskPriority, KPIType, SalesTheatre };
 import { KPIHistoryEntry } from './kpi';
 
 export type PoVMetadata = {
@@ -22,6 +22,9 @@ export type PoVSummary = {
   endDate: Date;
   ownerId: string;
   teamId: string | null;
+  salesTheatre: SalesTheatre;
+  countryId: string;
+  regionId: string | null;
   metadata: PoVMetadata;
   createdAt: Date;
   updatedAt: Date;
@@ -37,11 +40,16 @@ export type PoVDetails = {
   endDate: Date;
   ownerId: string;
   teamId: string | null;
+  salesTheatre: SalesTheatre;
+  countryId: string;
+  regionId: string | null;
   metadata: PoVMetadata;
   createdAt: Date;
   updatedAt: Date;
   team?: { id: string; name: string } | null;
   owner?: { id: string; name: string; email: string };
+  country?: { id: string; name: string; code: string };
+  region?: { id: string; name: string; type: string } | null;
   phases?: Array<PhaseResponse>;
 };
 
@@ -93,7 +101,6 @@ export type PhaseResponse = Phase & {
   tasks: TaskResponse[];
 };
 
-
 export type PoVCreateInput = Prisma.POVCreateInput;
 export type PoVUpdateInput = Prisma.POVUpdateInput;
 export type PoVWhereInput = Prisma.POVWhereInput;
@@ -107,6 +114,9 @@ export type PoVFilters = {
   startDate?: Date;
   endDate?: Date;
   search?: string;
+  salesTheatre?: SalesTheatre;
+  countryId?: string;
+  regionId?: string;
 };
 
 export type PoVResponse = PoVDetails;

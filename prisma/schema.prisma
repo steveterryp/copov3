@@ -8,7 +8,103 @@ datasource db {
 }
 
 // Geographical Models
+model Country {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  code        String       @unique
+  theatre     SalesTheatre
+  regions     Region[]
+  povs        POV[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
+  @@index([theatre])
+}
+
+enum RegionType {
+  NORTH
+  SOUTH
+  EAST
+  WEST
+  CENTRAL
+}
+
+model Region {
+  id          String     @id @default(cuid())
+  name        String
+  type        RegionType
+  countryId   String
+  country     Country    @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  povs        POV[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([type, countryId])
+  @@index([countryId])
+}
+
+// POV Domain Models
+model POV {
+  id              String           @id @default(cuid())
+  title           String
+  description     String
+  status          POVStatus        @default(PROJECTED)
+  priority        Priority         @default(MEDIUM)
+  startDate       DateTime
+  endDate         DateTime
+  objective       String?
+  dealId          String?
+  opportunityName String?
+  revenue         Decimal?
+  forecastDate    DateTime?
+  customerName    String?
+  customerContact String?
+  partnerName     String?
+  partnerContact  String?
+  competitors     String[]
+  solution        String?
+  lastCrmSync     DateTime?
+  crmSyncStatus   String?
+  documents       Json?
+  featureRequests Json?
+  supportTickets  Json?
+  blockers        Json?
+  tags            String[]
+  estimatedBudget Decimal?
+  budgetDocument  String?
+  resources       Json?
+  salesTheatre    SalesTheatre
+  countryId       String
+  regionId        String?
+  ownerId         String
+  teamId          String?
+  metadata        Json?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  
+  // Relations
+  syncHistory     CRMSyncHistory[]
+  milestones      Milestone[]
+  owner           User             @relation("POVOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  team            Team?            @relation(fields: [teamId], references: [id])
+  country         Country          @relation(fields: [countryId], references: [id])
+  region          Region?          @relation(fields: [regionId], references: [id])
+  kpis            POVKPI[]
+  launch          POVLaunch?
+  phases          Phase[]
+  workflows       Workflow[]
+  tasks           Task[]
+
+  @@index([status, priority])
+  @@index([ownerId])
+  @@index([teamId])
+  @@index([lastCrmSync])
+  @@index([countryId])
+  @@index([regionId])
+  @@index([salesTheatre])
+}
+
+// Rest of models unchanged...
 model PhaseTemplate {
   id          String    @id @default(cuid())
   name        String
@@ -183,66 +279,6 @@ model Milestone {
 
   @@index([povId])
   @@index([dueDate])
-}
-
-model POV {
-  id              String           @id @default(cuid())
-  title           String
-  description     String
-  status          POVStatus        @default(PROJECTED)
-  priority        Priority         @default(MEDIUM)
-  startDate       DateTime
-  endDate         DateTime
-  objective       String?
-  dealId          String?
-  opportunityName String?
-  revenue         Decimal?
-  forecastDate    DateTime?
-  customerName    String?
-  customerContact String?
-  partnerName     String?
-  partnerContact  String?
-  competitors     String[]
-  solution        String?
-  lastCrmSync     DateTime?
-  crmSyncStatus   String?
-  documents       Json?
-  featureRequests Json?
-  supportTickets  Json?
-  blockers        Json?
-  tags            String[]
-  estimatedBudget Decimal?
-  budgetDocument  String?
-  resources       Json?
-  salesTheatre    SalesTheatre?
-  countryId       String?
-  regionId        String?
-  ownerId         String
-  teamId          String?
-  metadata        Json?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  
-  // Relations
-  syncHistory     CRMSyncHistory[]
-  milestones      Milestone[]
-  owner           User             @relation("POVOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  team            Team?            @relation(fields: [teamId], references: [id])
-  country         Country?         @relation(fields: [countryId], references: [id])
-  region          Region?          @relation(fields: [regionId], references: [id])
-  kpis            POVKPI[]
-  launch          POVLaunch?
-  phases          Phase[]
-  workflows       Workflow[]
-  tasks           Task[]
-
-  @@index([status, priority])
-  @@index([ownerId])
-  @@index([teamId])
-  @@index([lastCrmSync])
-  @@index([countryId])
-  @@index([regionId])
-  @@index([salesTheatre])
 }
 
 model TeamMember {
@@ -442,6 +478,7 @@ model CRMSettings {
   updatedAt     DateTime @updatedAt
 }
 
+// Enums
 enum POVStatus {
   PROJECTED
   IN_PROGRESS
@@ -569,27 +606,4 @@ enum SalesTheatre {
   LAC
   EMEA
   APJ
-}
-
-model Region {
-  id          String    @id @default(cuid())
-  name        String    @unique
-  description String?
-  countries   Country[]
-  povs        POV[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
-
-model Country {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  code        String   @unique
-  regionId    String
-  region      Region   @relation(fields: [regionId], references: [id])
-  povs        POV[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([regionId])
 }

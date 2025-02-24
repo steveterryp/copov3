@@ -1,4 +1,5 @@
 import type { JsonValue } from '@prisma/client/runtime/library';
+import type { Prisma } from '@prisma/client';
 
 export type KPIType = 'PERCENTAGE' | 'NUMERIC' | 'BOOLEAN' | 'CUSTOM';
 export type PoVStatus = 'PROJECTED' | 'IN_PROGRESS' | 'STALLED' | 'VALIDATION' | 'WON' | 'LOST';
@@ -8,7 +9,7 @@ export interface KPITemplateCreateInput {
   description?: string;
   type: KPIType;
   isCustom?: boolean;
-  defaultTarget?: JsonValue;
+  defaultTarget?: Prisma.InputJsonValue;
   calculation?: string;
   visualization?: string;
 }
@@ -45,6 +46,14 @@ export interface KPITarget {
   threshold?: KPIThreshold;
 }
 
+export type SerializedKPITarget = {
+  value: number;
+  threshold?: {
+    warning: number;
+    critical: number;
+  };
+};
+
 export interface KPIVisualization {
   type: 'line' | 'bar' | 'gauge';
   options?: {
@@ -71,7 +80,7 @@ export interface KPICalculationResult {
 export interface KPICreateInput {
   name: string;
   target: KPITarget;
-  current: number | Record<string, number>;
+  current: Prisma.InputJsonValue;
   weight?: number;
 }
 
@@ -82,8 +91,8 @@ export interface KPIResponse {
   povId: string;
   templateId: string | null;
   name: string;
-  target: KPITarget;
-  current: number | Record<string, number>;
+  target: SerializedKPITarget;
+  current: JsonValue;
   weight: number | null;
   createdAt: Date;
   updatedAt: Date;
