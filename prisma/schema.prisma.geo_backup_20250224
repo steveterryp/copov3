@@ -1,0 +1,609 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Geographical Models
+model Country {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  code        String       @unique
+  theatre     SalesTheatre
+  regions     Region[]
+  povs        POV[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([theatre])
+}
+
+enum RegionType {
+  NORTH
+  SOUTH
+  EAST
+  WEST
+  CENTRAL
+}
+
+model Region {
+  id          String     @id @default(cuid())
+  name        String
+  type        RegionType
+  countryId   String
+  country     Country    @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  povs        POV[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([type, countryId])
+  @@index([countryId])
+}
+
+// POV Domain Models
+model POV {
+  id              String           @id @default(cuid())
+  title           String
+  description     String
+  status          POVStatus        @default(PROJECTED)
+  priority        Priority         @default(MEDIUM)
+  startDate       DateTime
+  endDate         DateTime
+  objective       String?
+  dealId          String?
+  opportunityName String?
+  revenue         Decimal?
+  forecastDate    DateTime?
+  customerName    String?
+  customerContact String?
+  partnerName     String?
+  partnerContact  String?
+  competitors     String[]
+  solution        String?
+  lastCrmSync     DateTime?
+  crmSyncStatus   String?
+  documents       Json?
+  featureRequests Json?
+  supportTickets  Json?
+  blockers        Json?
+  tags            String[]
+  estimatedBudget Decimal?
+  budgetDocument  String?
+  resources       Json?
+  salesTheatre    SalesTheatre
+  countryId       String
+  regionId        String?
+  ownerId         String
+  teamId          String?
+  metadata        Json?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  
+  // Relations
+  syncHistory     CRMSyncHistory[]
+  milestones      Milestone[]
+  owner           User             @relation("POVOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  team            Team?            @relation(fields: [teamId], references: [id])
+  country         Country          @relation(fields: [countryId], references: [id])
+  region          Region?          @relation(fields: [regionId], references: [id])
+  kpis            POVKPI[]
+  launch          POVLaunch?
+  phases          Phase[]
+  workflows       Workflow[]
+  tasks           Task[]
+
+  @@index([status, priority])
+  @@index([ownerId])
+  @@index([teamId])
+  @@index([lastCrmSync])
+  @@index([countryId])
+  @@index([regionId])
+  @@index([salesTheatre])
+}
+
+// Rest of models unchanged...
+model PhaseTemplate {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  type        PhaseType @default(PLANNING)
+  isDefault   Boolean   @default(false)
+  workflow    Json
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  phases      Phase[]
+}
+
+model Phase {
+  id          String         @id @default(cuid())
+  name        String
+  description String
+  type        PhaseType      @default(PLANNING)
+  startDate   DateTime
+  endDate     DateTime
+  order       Int
+  povId       String
+  templateId  String?
+  details     Json?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  pov         POV            @relation(fields: [povId], references: [id], onDelete: Cascade)
+  template    PhaseTemplate? @relation(fields: [templateId], references: [id])
+  tasks       Task[]
+
+  @@index([povId])
+  @@index([templateId])
+  @@index([startDate, endDate])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  taskId    String   @map("task_id")
+  userId    String   @map("user_id")
+  text      String
+  createdAt DateTime @default(now()) @map("created_at")
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model Attachment {
+  id         String   @id @default(cuid())
+  taskId     String   @map("task_id")
+  filename   String
+  fileSize   Int      @map("file_size")
+  fileType   String   @map("file_type")
+  storageUrl String   @map("storage_url")
+  createdAt  DateTime @default(now()) @map("created_at")
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("attachments")
+}
+
+model TaskActivity {
+  id        String   @id @default(cuid())
+  taskId    String   @map("task_id")
+  userId    String   @map("user_id")
+  action    String
+  timestamp DateTime @default(now())
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("task_activities")
+}
+
+model Task {
+  id          String         @id @default(cuid())
+  title       String
+  description String?
+  assigneeId  String?        @map("assignee_id")
+  teamId      String?        @map("team_id")
+  povId       String?        @map("pov_id")
+  phaseId     String?        @map("phase_id")
+  dueDate     DateTime?      @map("due_date")
+  priority    TaskPriority   @default(MEDIUM)
+  status      TaskStatus     @default(OPEN)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+  attachments Attachment[]
+  comments    Comment[]
+  activities  TaskActivity[]
+  assignee    User?          @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  phase       Phase?         @relation(fields: [phaseId], references: [id])
+  pov         POV?           @relation(fields: [povId], references: [id])
+  team        Team?          @relation(fields: [teamId], references: [id])
+
+  @@map("tasks")
+}
+
+model Team {
+  id        String       @id @default(cuid())
+  name      String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  povs      POV[]
+  members   TeamMember[]
+  tasks     Task[]
+}
+
+model KPITemplate {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  type          KPIType
+  isCustom      Boolean  @default(false)
+  defaultTarget Json?
+  calculation   String?
+  visualization String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  kpis          POVKPI[]
+}
+
+model POVKPI {
+  id         String       @id @default(cuid())
+  povId      String
+  templateId String?
+  name       String
+  target     Json
+  current    Json
+  history    Json         @default("[]")
+  weight     Float?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  pov        POV          @relation(fields: [povId], references: [id], onDelete: Cascade)
+  template   KPITemplate? @relation(fields: [templateId], references: [id])
+
+  @@index([povId])
+  @@index([templateId])
+}
+
+model CRMSyncHistory {
+  id        String   @id @default(cuid())
+  povId     String
+  status    String
+  details   Json?
+  createdAt DateTime @default(now())
+  pov       POV      @relation(fields: [povId], references: [id], onDelete: Cascade)
+
+  @@index([povId])
+  @@index([createdAt])
+}
+
+model POVLaunch {
+  id         String    @id @default(cuid())
+  povId      String    @unique
+  confirmed  Boolean   @default(false)
+  checklist  Json
+  launchedAt DateTime?
+  launchedBy String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  pov        POV       @relation(fields: [povId], references: [id], onDelete: Cascade)
+}
+
+model Milestone {
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  dueDate     DateTime
+  povId       String
+  status      MilestoneStatus @default(PENDING)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  pov         POV             @relation(fields: [povId], references: [id], onDelete: Cascade)
+
+  @@index([povId])
+  @@index([dueDate])
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  role      TeamRole @default(MEMBER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+}
+
+model Activity {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  type      String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  message   String
+  type      String   @default("info")
+  actionUrl String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserSettings {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  settings  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SupportRequest {
+  id          String                 @id @default(cuid())
+  userId      String
+  type        String
+  priority    SupportRequestPriority @default(MEDIUM)
+  subject     String
+  description String
+  status      SupportRequestStatus   @default(OPEN)
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  user        User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model FeatureRequest {
+  id           String               @id @default(cuid())
+  userId       String
+  category     String
+  impact       FeatureRequestImpact @default(MEDIUM)
+  title        String
+  description  String
+  businessCase String
+  isUrgent     Boolean              @default(false)
+  status       FeatureRequestStatus @default(PENDING)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id               String           @id @default(cuid())
+  name             String
+  email            String           @unique
+  password         String
+  role             UserRole         @default(USER)
+  status           UserStatus       @default(ACTIVE)
+  lastLogin        DateTime?
+  resetTokenHash    String?
+  resetTokenExpiry  DateTime?
+  verificationToken String?         @map("verification_token")
+  isVerified       Boolean          @default(false) @map("is_verified")
+  verifiedAt       DateTime?        @map("verified_at")
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  customRoleId     String?
+  activities       Activity[]
+  featureRequests  FeatureRequest[]
+  ownedPOVs        POV[]            @relation("POVOwner")
+  refreshTokens    RefreshToken[]
+  supportRequests  SupportRequest[]
+  teamMembers      TeamMember[]
+  customRole       Role?            @relation(fields: [customRoleId], references: [id])
+  settings         UserSettings?
+  comments         Comment[]
+  notifications    Notification[]
+  taskActivities   TaskActivity[]
+  assignedTasks    Task[]           @relation("TaskAssignee")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  permissions String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
+}
+
+model RolePermission {
+  id           String   @id @default(cuid())
+  role         UserRole
+  resourceType String
+  action       String
+  enabled      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([role, resourceType, action], name: "role_resourceType_action")
+  @@index([role])
+  @@map("role_permissions")
+}
+
+model CRMFieldMapping {
+  id          String   @id @default(cuid())
+  crmField    String   @unique
+  localField  String
+  transformer String?
+  isRequired  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WorkflowStep {
+  id         String             @id @default(cuid())
+  name       String
+  order      Int
+  status     WorkflowStepStatus @default(PENDING)
+  role       String
+  workflowId String
+  metadata   Json?
+  comment    String?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  workflow   Workflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+}
+
+model Workflow {
+  id        String         @id @default(cuid())
+  type      WorkflowType
+  status    WorkflowStatus @default(PENDING)
+  povId     String
+  metadata  Json?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  pov       POV            @relation(fields: [povId], references: [id], onDelete: Cascade)
+  steps     WorkflowStep[]
+
+  @@index([povId])
+}
+
+model SystemSettings {
+  id            String   @id
+  notifications Boolean  @default(true)
+  twoFactor     Boolean  @default(false)
+  darkMode      Boolean  @default(false)
+  updatedAt     DateTime @updatedAt
+}
+
+model CRMSettings {
+  id            String   @id @default(cuid())
+  apiUrl        String
+  apiKey        String
+  clientId      String
+  clientSecret  String
+  autoSync      Boolean  @default(true)
+  syncInterval  Int      @default(30)
+  retryAttempts Int      @default(3)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// Enums
+enum POVStatus {
+  PROJECTED
+  IN_PROGRESS
+  STALLED
+  VALIDATION
+  WON
+  LOST
+}
+
+enum TaskStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  BLOCKED
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum SupportRequestStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum FeatureRequestStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum MilestoneStatus {
+  PENDING
+  COMPLETED
+  OVERDUE
+}
+
+enum WorkflowStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+enum WorkflowStepStatus {
+  PENDING
+  IN_PROGRESS
+  APPROVED
+  REJECTED
+  SKIPPED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum SupportRequestPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum FeatureRequestImpact {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum TeamRole {
+  PROJECT_MANAGER
+  SALES_ENGINEER
+  TECHNICAL_TEAM
+  MEMBER
+  ADMIN
+  OWNER
+}
+
+enum PhaseType {
+  PLANNING
+  EXECUTION
+  REVIEW
+}
+
+enum KPIType {
+  PERCENTAGE
+  NUMERIC
+  BOOLEAN
+  CUSTOM
+}
+
+enum WorkflowType {
+  POV_APPROVAL
+  PHASE_APPROVAL
+  TASK_APPROVAL
+  CUSTOM
+}
+
+enum SalesTheatre {
+  NORTH_AMERICA
+  LAC
+  EMEA
+  APJ
+}
