@@ -3,47 +3,56 @@ import { z } from 'zod';
 import { BaseValidator } from '../validation/base';
 import { prisma } from '../prisma';
 
+// Define RegionType locally to match schema
+type RegionType = 'NORTH' | 'SOUTH' | 'EAST' | 'WEST' | 'CENTRAL';
+
 // Types
 export interface PoVGeographicalData {
-  salesTheatre?: SalesTheatre;
-  countryId?: string;
+  salesTheatre: SalesTheatre;
+  countryId: string;
   regionId?: string;
 }
 
+interface RegionResponse {
+  id: string;
+  name: string;
+  type: RegionType;
+}
+
+interface CountryWithRegions {
+  id: string;
+  name: string;
+  code: string;
+  theatre: SalesTheatre;
+  createdAt: Date;
+  updatedAt: Date;
+  regions: RegionResponse[];
+}
+
 // Validation
+const povGeographicalSchema = z.object({
+  salesTheatre: z.enum(['NORTH_AMERICA', 'LAC', 'EMEA', 'APJ']),
+  countryId: z.string(),
+  regionId: z.string().optional(),
+}) satisfies z.ZodType<PoVGeographicalData>;
+
 export class PoVGeographicalValidator extends BaseValidator<PoVGeographicalData> {
   constructor() {
-    super(
-      z.object({
-        salesTheatre: z.enum(['NORTH_AMERICA', 'LAC', 'EMEA', 'APJ']).optional(),
-        countryId: z.string().optional(),
-        regionId: z.string().optional(),
-      }).refine(
-        (data) => {
-          // If country is specified, region must be specified
-          if (data.countryId && !data.regionId) {
-            return false;
-          }
-          return true;
-        },
-        {
-          message: 'Region must be specified when country is provided',
-        }
-      )
-    );
+    super(povGeographicalSchema);
   }
 
   async validateGeographicalConsistency(data: PoVGeographicalData): Promise<boolean> {
-    if (!data.countryId || !data.regionId) {
+    if (!data.regionId) {
       return true;
     }
 
-    const country = await prisma.country.findUnique({
-      where: { id: data.countryId },
-      include: { region: true },
-    });
+    const region = await prisma.$queryRaw<Region[]>`
+      SELECT * FROM "Region"
+      WHERE id = ${data.regionId}
+      AND "countryId" = ${data.countryId}
+    `;
 
-    return country?.regionId === data.regionId;
+    return region.length > 0;
   }
 }
 
@@ -57,40 +66,51 @@ export class GeographicalService {
 
   // Region Operations
   async getRegions(): Promise<Region[]> {
-    return this.prisma.region.findMany({
-      include: {
-        countries: true,
-        _count: {
-          select: { povs: true },
-        },
-      },
-    });
-  }
-
-  async getRegionWithCountries(regionId: string): Promise<Region | null> {
-    return this.prisma.region.findUnique({
-      where: { id: regionId },
-      include: {
-        countries: {
-          orderBy: { name: 'asc' },
-        },
-      },
-    });
+    return this.prisma.$queryRaw<Region[]>`
+      SELECT r.*, c.name as country_name
+      FROM "Region" r
+      LEFT JOIN "Country" c ON r."countryId" = c.id
+      ORDER BY r.name ASC
+    `;
   }
 
   // Country Operations
-  async getCountriesByRegion(regionId: string): Promise<Country[]> {
-    return this.prisma.country.findMany({
-      where: { regionId },
-      orderBy: { name: 'asc' },
-    });
+  async getCountriesByRegion(regionId: string): Promise<CountryWithRegions[]> {
+    return this.prisma.$queryRaw<CountryWithRegions[]>`
+      SELECT 
+        c.*,
+        json_agg(
+          json_build_object(
+            'id', r.id,
+            'name', r.name,
+            'type', r.type
+          )
+        ) as regions
+      FROM "Country" c
+      LEFT JOIN "Region" r ON r."countryId" = c.id
+      WHERE r.id = ${regionId}
+      GROUP BY c.id
+      ORDER BY c.name ASC
+    `;
   }
 
-  async getCountryWithRegion(countryId: string): Promise<Country | null> {
-    return this.prisma.country.findUnique({
-      where: { id: countryId },
-      include: { region: true },
-    });
+  async getCountriesByTheatre(theatre: SalesTheatre): Promise<CountryWithRegions[]> {
+    return this.prisma.$queryRaw<CountryWithRegions[]>`
+      SELECT 
+        c.*,
+        json_agg(
+          json_build_object(
+            'id', r.id,
+            'name', r.name,
+            'type', r.type
+          )
+        ) as regions
+      FROM "Country" c
+      LEFT JOIN "Region" r ON r."countryId" = c.id
+      WHERE c.theatre = ${theatre}::text::"SalesTheatre"
+      GROUP BY c.id
+      ORDER BY c.name ASC
+    `;
   }
 
   // PoV Geographical Operations
@@ -102,16 +122,11 @@ export class GeographicalService {
     await this.validator.validateData(data);
 
     // Validate geographical consistency
-    if (data.countryId && data.regionId) {
+    if (data.regionId) {
       const isValid = await this.validator.validateGeographicalConsistency(data);
       if (!isValid) {
-        throw new Error('Invalid geographical combination: country does not belong to specified region');
+        throw new Error('Invalid geographical combination: region does not belong to specified country');
       }
-    }
-
-    // If country is cleared, also clear region
-    if (data.countryId === undefined) {
-      data.regionId = undefined;
     }
 
     return this.prisma.pOV.update({
@@ -132,42 +147,39 @@ export class GeographicalService {
   }> {
     const [theatreStats, regionStats, countryStats] = await Promise.all([
       // Get PoV count by theatre
-      this.prisma.pOV.groupBy({
-        by: ['salesTheatre'],
-        _count: true,
-      }),
+      this.prisma.$queryRaw<{ theatre: SalesTheatre; count: number }[]>`
+        SELECT theatre, COUNT(*) as count
+        FROM "POV"
+        GROUP BY theatre
+      `,
 
       // Get PoV count by region
-      this.prisma.region.findMany({
-        include: {
-          _count: {
-            select: { povs: true },
-          },
-        },
-      }),
+      this.prisma.$queryRaw<{ id: string; name: string; count: number }[]>`
+        SELECT r.id, r.name, COUNT(p.id) as count
+        FROM "Region" r
+        LEFT JOIN "POV" p ON p."regionId" = r.id
+        GROUP BY r.id, r.name
+      `,
 
       // Get PoV count by country
-      this.prisma.country.findMany({
-        include: {
-          _count: {
-            select: { povs: true },
-          },
-        },
-      }),
+      this.prisma.$queryRaw<{ id: string; name: string; count: number }[]>`
+        SELECT c.id, c.name, COUNT(p.id) as count
+        FROM "Country" c
+        LEFT JOIN "POV" p ON p."countryId" = c.id
+        GROUP BY c.id, c.name
+      `,
     ]);
 
     return {
       byTheatre: theatreStats.reduce((acc, stat) => {
-        if (stat.salesTheatre) {
-          acc[stat.salesTheatre] = stat._count;
-        }
+        acc[stat.theatre] = Number(stat.count);
         return acc;
       }, {} as Record<SalesTheatre, number>),
 
       byRegion: regionStats.reduce((acc, region) => {
         acc[region.id] = {
           name: region.name,
-          count: region._count.povs,
+          count: Number(region.count),
         };
         return acc;
       }, {} as Record<string, { name: string; count: number }>),
@@ -175,7 +187,7 @@ export class GeographicalService {
       byCountry: countryStats.reduce((acc, country) => {
         acc[country.id] = {
           name: country.name,
-          count: country._count.povs,
+          count: Number(country.count),
         };
         return acc;
       }, {} as Record<string, { name: string; count: number }>),

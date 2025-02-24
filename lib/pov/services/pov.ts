@@ -3,50 +3,38 @@ import { ApiError } from "@/lib/errors"
 import { Prisma } from "@prisma/client"
 import { PoVCreateInput, PoVUpdateInput } from "@/lib/pov/types/core"
 
+const povInclude = {
+  phases: {
+    include: {
+      tasks: true
+    }
+  },
+  owner: true,
+  team: {
+    include: {
+      members: {
+        include: {
+          user: true
+        }
+      }
+    }
+  },
+  country: true,
+  region: true,
+} satisfies Prisma.POVInclude;
+
 export class PoVService {
   async create(data: PoVCreateInput) {
     return prisma.pOV.create({
       data,
-      include: {
-        phases: {
-          include: {
-            tasks: true
-          }
-        },
-        owner: true,
-        team: {
-          include: {
-            members: {
-              include: {
-                user: true
-              }
-            }
-          }
-        }
-      },
+      include: povInclude,
     })
   }
 
   async get(id: string) {
     return prisma.pOV.findUnique({
       where: { id },
-      include: {
-        phases: {
-          include: {
-            tasks: true
-          }
-        },
-        owner: true,
-        team: {
-          include: {
-            members: {
-              include: {
-                user: true
-              }
-            }
-          }
-        }
-      },
+      include: povInclude,
     })
   }
 
@@ -67,26 +55,12 @@ export class PoVService {
         ]
       },
       include: {
-        phases: {
-          include: {
-            tasks: true
-          }
-        },
-        owner: true,
-        team: {
-          include: {
-            members: {
-              include: {
-                user: true
-              }
-            }
-          }
-        },
+        ...povInclude,
         kpis: {
           include: {
             template: true
           }
-        }
+        },
       },
       orderBy: {
         createdAt: 'desc'
@@ -98,9 +72,7 @@ export class PoVService {
     return prisma.pOV.update({
       where: { id },
       data,
-      include: {
-        phases: true,
-      },
+      include: povInclude,
     })
   }
 
@@ -114,7 +86,9 @@ export class PoVService {
     return prisma.phase.findUnique({
       where: { id },
       include: {
-        pov: true,
+        pov: {
+          include: povInclude,
+        },
       },
     })
   }

@@ -8,7 +8,8 @@ import {
   KPIHistoryEntry,
   KPICreateInput,
   KPIUpdateInput,
-  KPIVisualization
+  KPIVisualization,
+  SerializedKPITarget
 } from '../types/kpi';
 import { povService } from './pov';
 import { kpiWithTemplate, fullKPI } from '../prisma/select';
@@ -34,7 +35,7 @@ class KPIService {
         description: data.description,
         type: data.type,
         isCustom: data.isCustom || false,
-        defaultTarget: data.defaultTarget || Prisma.JsonNull,
+        defaultTarget: data.defaultTarget ? data.defaultTarget : {},
         calculation: data.calculation,
         visualization: data.visualization
       }
@@ -47,7 +48,7 @@ class KPIService {
       ...(data.description !== undefined && { description: data.description }),
       ...(data.type && { type: data.type }),
       ...(data.isCustom !== undefined && { isCustom: data.isCustom }),
-      ...(data.defaultTarget !== undefined && { defaultTarget: data.defaultTarget || Prisma.JsonNull }),
+      ...(data.defaultTarget !== undefined && { defaultTarget: data.defaultTarget || {} }),
       ...(data.calculation !== undefined && { calculation: data.calculation }),
       ...(data.visualization !== undefined && { visualization: data.visualization })
     };
@@ -70,10 +71,10 @@ class KPIService {
         povId,
         templateId,
         name: data.name,
-        target: data.target as unknown as Prisma.InputJsonValue,
-        current: data.current as unknown as Prisma.InputJsonValue,
+        target: this.serializeKPITarget(data.target),
+        current: data.current,
         weight: data.weight,
-        history: [] as unknown as Prisma.InputJsonValue
+        history: []
       }
     });
 
@@ -83,8 +84,8 @@ class KPIService {
   async updateKPI(id: string, data: KPIUpdateInput) {
     const updateData: Prisma.POVKPIUpdateInput = {
       ...(data.name && { name: data.name }),
-      ...(data.target !== undefined && { target: data.target as unknown as Prisma.InputJsonValue }),
-      ...(data.current !== undefined && { current: data.current as unknown as Prisma.InputJsonValue }),
+      ...(data.target !== undefined && { target: this.serializeKPITarget(data.target) }),
+      ...(data.current !== undefined && { current: data.current }),
       ...(data.weight !== undefined && { weight: data.weight })
     };
 
@@ -96,13 +97,25 @@ class KPIService {
     return mapKPIToDomain(kpi);
   }
 
+  private serializeKPITarget(target: KPITarget | undefined): Prisma.InputJsonValue {
+    if (!target) return {};
+    const serialized: SerializedKPITarget = {
+      value: target.value,
+      threshold: target.threshold ? {
+        warning: target.threshold.warning,
+        critical: target.threshold.critical
+      } : undefined
+    };
+    return serialized;
+  }
+
   async getKPIHistory(id: string): Promise<KPIHistoryEntry[]> {
     const kpi = await prisma.pOVKPI.findUnique({
       where: { id },
       select: { history: true }
     });
 
-    const history = kpi?.history as Prisma.JsonValue;
+    const history = kpi?.history;
     if (!history || !Array.isArray(history)) {
       return [];
     }
@@ -136,21 +149,22 @@ class KPIService {
         select: { history: true }
       });
 
-      const history = kpi?.history as Prisma.JsonValue;
+      const history = kpi?.history;
       const currentHistory = Array.isArray(history) ? history : [];
 
-      // Add new entry as JSON value
-      currentHistory.push({
+      // Add new entry
+      const newEntry = {
         value: historyEntry.value,
         timestamp: historyEntry.timestamp,
-        metadata: historyEntry.metadata || null
-      } as Prisma.JsonValue);
+        metadata: historyEntry.metadata || {}
+      };
+      currentHistory.push(newEntry);
 
       // Update within transaction
       await tx.pOVKPI.update({
         where: { id },
         data: {
-          history: currentHistory as unknown as Prisma.InputJsonValue
+          history: currentHistory
         }
       });
     });
@@ -241,7 +255,7 @@ class KPIService {
         await tx.pOVKPI.update({
           where: { id: kpiId },
           data: {
-            current: value as unknown as Prisma.InputJsonValue
+            current: value
           }
         });
 
@@ -251,27 +265,28 @@ class KPIService {
           select: { history: true }
         });
 
-        const history = kpi?.history as Prisma.JsonValue;
+        const history = kpi?.history;
         const currentHistory = Array.isArray(history) ? history : [];
 
-        // Add new entry as JSON value
-        currentHistory.push({
+        // Add new entry
+        const newEntry = {
           value: historyEntry.value,
           timestamp: historyEntry.timestamp,
-          metadata: historyEntry.metadata || null
-        } as Prisma.JsonValue);
+          metadata: historyEntry.metadata || {}
+        };
+        currentHistory.push(newEntry);
 
         // Update history within transaction
         await tx.pOVKPI.update({
           where: { id: kpiId },
           data: {
-            history: currentHistory as unknown as Prisma.InputJsonValue
+            history: currentHistory
           }
         });
       });
 
       // Determine status based on thresholds
-      const target = kpi.target as KPITarget;
+      const target = kpi.target as SerializedKPITarget;
       const status = this.determineKPIStatus(value, target);
 
       return {
@@ -291,7 +306,7 @@ class KPIService {
 
   private determineKPIStatus(
     value: number,
-    target: KPITarget
+    target: SerializedKPITarget
   ): KPICalculationResult['status'] {
     const { threshold } = target;
     if (!threshold) return value >= target.value ? 'success' : 'warning';

@@ -1,6 +1,7 @@
-import { Prisma } from '@prisma/client';
-import { PoVResponse, KPIResponse } from '../types/core';
-import { PhaseWithTemplate } from '../types/phase';
+import { PoVResponse, PoVDetails } from '../types/core';
+import { Phase, PhaseTemplate } from '@prisma/client';
+import { PhaseWithTemplate, PhaseDetails } from '../types/phase';
+import { KPIResponse } from '../types/kpi';
 
 export const mapPoVToResponse = (pov: any): PoVResponse => ({
   id: pov.id,
@@ -12,12 +13,43 @@ export const mapPoVToResponse = (pov: any): PoVResponse => ({
   endDate: pov.endDate,
   ownerId: pov.ownerId,
   teamId: pov.teamId,
+  salesTheatre: pov.salesTheatre,
+  countryId: pov.countryId,
+  regionId: pov.regionId,
   metadata: pov.metadata,
   createdAt: pov.createdAt,
   updatedAt: pov.updatedAt,
-  team: pov.team ? { id: pov.team.id, name: pov.team.name } : null,
-  owner: pov.owner ? { id: pov.owner.id, name: pov.owner.name, email: pov.owner.email } : undefined,
-  phases: pov.phases?.map(mapPhaseToResponse) || []
+  team: pov.team ? {
+    id: pov.team.id,
+    name: pov.team.name,
+  } : null,
+  owner: pov.owner ? {
+    id: pov.owner.id,
+    name: pov.owner.name,
+    email: pov.owner.email,
+  } : undefined,
+  country: pov.country ? {
+    id: pov.country.id,
+    name: pov.country.name,
+    code: pov.country.code,
+  } : undefined,
+  region: pov.region ? {
+    id: pov.region.id,
+    name: pov.region.name,
+    type: pov.region.type,
+  } : null,
+  phases: pov.phases,
+});
+
+export const mapPhaseToResponse = (
+  phase: Phase & { 
+    template?: PhaseTemplate;
+    details: PhaseDetails;
+  }
+): PhaseWithTemplate => ({
+  ...phase,
+  template: phase.template,
+  details: phase.details || { tasks: [], metadata: {} },
 });
 
 export const mapKPIToDomain = (kpi: any): KPIResponse => ({
@@ -25,9 +57,8 @@ export const mapKPIToDomain = (kpi: any): KPIResponse => ({
   povId: kpi.povId,
   templateId: kpi.templateId,
   name: kpi.name,
-  target: kpi.target,
-  current: kpi.current,
-  history: kpi.history || [],
+  target: kpi.target as any,
+  current: kpi.current as any,
   weight: kpi.weight,
   createdAt: kpi.createdAt,
   updatedAt: kpi.updatedAt,
@@ -36,25 +67,7 @@ export const mapKPIToDomain = (kpi: any): KPIResponse => ({
     name: kpi.template.name,
     type: kpi.template.type,
     calculation: kpi.template.calculation,
-    visualization: kpi.template.visualization
-  } : null
-});
-
-export const mapPhaseToResponse = (phase: any): PhaseWithTemplate => ({
-  id: phase.id,
-  name: phase.name,
-  description: phase.description,
-  type: phase.type,
-  startDate: phase.startDate,
-  endDate: phase.endDate,
-  order: phase.order,
-  povId: phase.povId,
-  templateId: phase.templateId,
-  details: {
-    ...phase.details,
-    tasks: phase.tasks || []
-  },
-  createdAt: phase.createdAt,
-  updatedAt: phase.updatedAt,
-  template: phase.template || null
+    visualization: kpi.template.visualization,
+  } : null,
+  history: kpi.history || [],
 });

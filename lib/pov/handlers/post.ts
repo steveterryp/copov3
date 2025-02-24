@@ -7,6 +7,9 @@ import { ApiError } from '@/lib/errors';
 import { povService } from '../services/pov';
 import { phaseService } from '../services/phase';
 import { createPoVSchema, createPhaseSchema } from '../types/requests';
+import { PoVGeographicalValidator } from '@/lib/services/geographicalService';
+
+const geographicalValidator = new PoVGeographicalValidator();
 
 export async function createPoVHandler(
   request: NextRequest,
@@ -36,12 +39,33 @@ export async function createPoVHandler(
     throw new ApiError('BAD_REQUEST', 'Invalid request body', validatedData.error);
   }
 
-  // Create PoV
+  // Validate geographical data
+  const { salesTheatre, countryId, regionId } = validatedData.data;
+  if (regionId) {
+    const isValid = await geographicalValidator.validateGeographicalConsistency({
+      salesTheatre,
+      countryId,
+      regionId,
+    });
+    if (!isValid) {
+      throw new ApiError('BAD_REQUEST', 'Invalid geographical combination');
+    }
+  }
+
+  // Create PoV with geographical data
   const pov = await povService.create({
     ...validatedData.data,
     owner: {
       connect: { id: user.userId },
     },
+    country: {
+      connect: { id: countryId },
+    },
+    ...(regionId && {
+      region: {
+        connect: { id: regionId },
+      },
+    }),
   });
 
   return Response.json(pov);
