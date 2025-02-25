@@ -105,12 +105,12 @@ export default function LaunchStatusPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Badge variant={statusVariants[status.status]}>
-                {status.status.replace("_", " ")}
+              <Badge variant={statusVariants[status.status || 'NOT_STARTED']}>
+                {(status.status || 'NOT_STARTED').replace("_", " ")}
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
-              Last updated: {new Date(status.lastUpdated).toLocaleString()}
+              Last updated: {status.lastUpdated ? new Date(status.lastUpdated).toLocaleString() : 'Not available'}
             </p>
           </CardContent>
         </Card>
@@ -121,13 +121,13 @@ export default function LaunchStatusPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Progress value={status.progress} className="h-2" />
+              <Progress value={status.progress || 0} className="h-2" />
               <p className="text-sm text-muted-foreground mt-2">
-                {status.progress}% Complete
+                {status.progress || 0}% Complete
               </p>
             </div>
             <p className="text-sm">
-              Current Phase: {status.currentPhase}
+              Current Phase: {status.currentPhase || 'Not started'}
             </p>
           </CardContent>
         </Card>
@@ -137,8 +137,8 @@ export default function LaunchStatusPage() {
             <h3 className="text-lg font-semibold">Next Steps</h3>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p>{status.nextMilestone}</p>
-            {status.blockers.length > 0 && (
+            <p>{status.nextMilestone || 'No upcoming milestones'}</p>
+            {status.blockers && status.blockers.length > 0 && (
               <div>
                 <p className="font-medium text-destructive mb-2">
                   Blockers:

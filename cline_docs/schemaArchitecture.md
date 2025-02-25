@@ -57,7 +57,7 @@ enum POVStatus {
 enum Priority {
   // ...
 }
-
+q
 // Role Enums
 enum UserRole {
   // ...
@@ -267,7 +267,267 @@ npx prisma format
 
 This approach provides a good balance between organization and practicality while maintaining full tool support and avoiding the complexities of schema splitting.
 
-## Implementation Status (2025-02-15)
+## Geographical Data Implementation (2025-02-24)
+
+### Key Learnings
+
+1. **Required Fields Impact**:
+   - Adding required fields (salesTheatre, countryId) to core models like POV has widespread implications
+   - All POV creation flows must be updated to include these fields
+   - Test data scripts and seed files need comprehensive updates
+   - Existing services and handlers must be modified to handle new requirements
+
+2. **Data Hierarchy**:
+   ```prisma
+   // Geographical Models
+   model Country {
+     id          String       @id @default(cuid())
+     name        String       @unique
+     code        String       @unique
+     theatre     SalesTheatre
+     regions     Region[]
+     povs        POV[]
+     createdAt   DateTime     @default(now())
+     updatedAt   DateTime     @updatedAt
+
+     @@index([theatre])
+   }
+
+   model Region {
+     id          String     @id @default(cuid())
+     name        String
+     type        RegionType
+     countryId   String
+     country     Country    @relation(fields: [countryId], references: [id], onDelete: Cascade)
+     povs        POV[]
+     createdAt   DateTime   @default(now())
+     updatedAt   DateTime   @updatedAt
+
+     @@unique([type, countryId])
+     @@index([countryId])
+   }
+   ```
+
+3. **Type Safety Considerations**:
+   - Enums must be kept in sync between Prisma and TypeScript
+   - Geographical data requires careful validation in forms and APIs
+   - Type assertions may be needed when working with raw SQL queries
+   - Consider using zod schemas for runtime validation
+
+   **Type Safety Solutions**:
+   1. Schema Synchronization (Recommended)
+      ```typescript
+      // Ensure consistent field names across models
+      model Country {
+        theatre     SalesTheatre  // Not salesTheatre
+        // ... other fields
+      }
+
+      model POV {
+        salesTheatre SalesTheatre  // Match field names with Country model
+        // ... other fields
+      }
+      ```
+
+   2. Type Declaration Merging
+      ```typescript
+      // custom.d.ts
+      import { Prisma } from '@prisma/client';
+
+      declare global {
+        namespace PrismaJson {
+          interface CountryCreateInput {
+            theatre: SalesTheatre;  // Add missing type
+          }
+        }
+      }
+      ```
+
+   3. Runtime Type Casting (Last Resort)
+      ```typescript
+      // Add runtime validation to compensate for type assertions
+      function validateGeographicalData(data: unknown): asserts data is GeographicalData {
+        const schema = z.object({
+          theatre: z.enum(['EMEA', 'APJ', 'LAC', 'NORTH_AMERICA']),
+          countryId: z.string().cuid(),
+          regionId: z.string().cuid().optional()
+        });
+        
+        schema.parse(data);
+      }
+      ```
+
+   **Best Practice**: Always prefer schema synchronization over type assertions or runtime casting. This ensures type safety throughout the application and prevents runtime errors.
+
+4. **Data Seeding Strategy**:
+   - Geographical data should be seeded before other entities
+   - Seed scripts must handle the hierarchical nature of the data
+   - Consider using real-world data for meaningful testing
+   - Maintain consistent data across development environments
+
+5. **API Design Impact**:
+   - APIs need to handle geographical data relationships
+   - Consider implementing specialized endpoints for geographical queries
+   - Cache frequently accessed geographical data
+   - Implement proper error handling for missing geographical data
+
+6. **UI Considerations**:
+   - Form fields must respect geographical hierarchy (theatre → country → region)
+   - Implement cascading select components
+   - Consider using custom hooks for geographical data management
+   - Cache geographical data on the client side
+
+7. **Migration Complexity**:
+   - Adding required fields needs careful migration planning
+   - Consider using default values during migration
+   - Test migration thoroughly with production-like data
+   - Have clear rollback procedures
+
+### Best Practices
+
+1. **Data Modeling**:
+   ```typescript
+   // Type-safe geographical data handling
+   interface GeographicalContext {
+     theatre: SalesTheatre;
+     country: {
+       id: string;
+       name: string;
+       code: string;
+     };
+     region?: {
+       id: string;
+       name: string;
+       type: RegionType;
+     };
+   }
+
+   // Ensure type safety in POV creation
+   interface POVCreateInput extends PrismaModel {
+     // ... other fields
+     salesTheatre: SalesTheatre;
+     countryId: string;
+     regionId?: string;
+   }
+   ```
+
+2. **Service Layer**:
+   ```typescript
+   // Geographical service pattern
+   class GeographicalService {
+     // Cache frequently accessed data
+     private static theatreCache = new Map<SalesTheatre, Country[]>();
+
+     // Get countries by theatre with caching
+     async getCountriesByTheatre(theatre: SalesTheatre): Promise<Country[]> {
+       if (this.theatreCache.has(theatre)) {
+         return this.theatreCache.get(theatre)!;
+       }
+
+       const countries = await prisma.country.findMany({
+         where: { theatre },
+         include: { regions: true }
+       });
+
+       this.theatreCache.set(theatre, countries);
+       return countries;
+     }
+
+     // Clear cache when data changes
+     clearCache() {
+       this.theatreCache.clear();
+     }
+   }
+   ```
+
+3. **Form Handling**:
+   ```typescript
+   // Custom hook for geographical form fields
+   function useGeographicalFields() {
+     const [theatre, setTheatre] = useState<SalesTheatre>();
+     const [countryId, setCountryId] = useState<string>();
+     const [regionId, setRegionId] = useState<string>();
+
+     // Reset dependent fields when parent changes
+     useEffect(() => {
+       if (theatre) {
+         setCountryId(undefined);
+         setRegionId(undefined);
+       }
+     }, [theatre]);
+
+     useEffect(() => {
+       if (countryId) {
+         setRegionId(undefined);
+       }
+     }, [countryId]);
+
+     return {
+       theatre,
+       countryId,
+       regionId,
+       setTheatre,
+       setCountryId,
+       setRegionId
+     };
+   }
+   ```
+
+4. **Testing Strategy**:
+   ```typescript
+   // Geographical test data helper
+   async function createGeographicalTestData() {
+     const country = await prisma.country.create({
+       data: {
+         name: 'Test Country',
+         code: 'TC',
+         theatre: SalesTheatre.EMEA,
+         regions: {
+           create: [
+             { name: 'North', type: RegionType.NORTH },
+             { name: 'South', type: RegionType.SOUTH }
+           ]
+         }
+       },
+       include: { regions: true }
+     });
+
+     return {
+       country,
+       cleanup: async () => {
+         await prisma.country.delete({ where: { id: country.id } });
+       }
+     };
+   }
+   ```
+
+### Impact on Existing Systems
+
+1. **POV Creation**:
+   - All POV creation flows must include geographical data
+   - Forms need additional validation
+   - APIs must handle new required fields
+   - Test scripts need updates
+
+2. **Data Migration**:
+   - Existing POVs need geographical data
+   - Consider business rules for default values
+   - Plan for data cleanup
+   - Test migration thoroughly
+
+3. **UI Updates**:
+   - Add geographical selection components
+   - Update forms and validation
+   - Consider UX for geographical data selection
+   - Implement proper error handling
+
+4. **Performance Considerations**:
+   - Cache geographical data where possible
+   - Optimize database queries
+   - Consider adding indices
+   - Monitor query performance
+
+## Implementation Status (2025-02-24)
 
 ### Completed Implementation
 

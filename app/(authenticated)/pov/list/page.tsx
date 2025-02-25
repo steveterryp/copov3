@@ -1,24 +1,26 @@
 'use client';
 
+import { PoVDetails } from '@/lib/pov/types/core';
+
 import React from 'react';
 import { Loader2 } from 'lucide-react';
-import PoVList from '@/components/pov/PoVList';
+import { POVList } from '@/components/pov/POVList';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { UserRole } from '@/lib/types/auth';
 
-export default function PoVListPage() {
-  const [povs, setPovs] = React.useState([]);
+export default function POVListPage() {
+  const [povs, setPovs] = React.useState<PoVDetails[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<Error | null>(null);
   const { user, hasRole } = useAuth();
   const isAdmin = user && hasRole(UserRole.ADMIN);
 
   React.useEffect(() => {
-    async function fetchPoVs() {
+    async function fetchPOVs() {
       try {
         const response = await fetch('/api/pov');
         if (!response.ok) {
-          throw new Error('Failed to fetch PoVs');
+          throw new Error('Failed to fetch POVs');
         }
         const result = await response.json();
         setPovs(result.data || []);
@@ -29,7 +31,7 @@ export default function PoVListPage() {
       }
     }
 
-    fetchPoVs();
+    fetchPOVs();
   }, []);
 
   if (loading) {
@@ -52,16 +54,16 @@ export default function PoVListPage() {
     <div className="p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">
-          {isAdmin ? 'All PoVs' : 'My PoVs'}
+          {isAdmin ? 'All POVs' : 'My POVs'}
         </h1>
         <p className="text-muted-foreground">
           {isAdmin
-            ? 'View and manage all PoVs across teams'
-            : 'View and manage your PoVs and team collaborations'}
+            ? 'View and manage all POVs across teams'
+            : 'View and manage your POVs and team collaborations'}
         </p>
       </div>
 
-      <PoVList povs={povs} />
+      <POVList povs={povs} />
     </div>
   );
 }

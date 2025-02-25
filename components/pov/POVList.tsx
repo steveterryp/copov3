@@ -24,34 +24,10 @@ import { useRouter } from 'next/navigation';
 import { useDateFormat } from '@/lib/hooks/useDateFormat';
 import { cn } from '@/lib/utils';
 
-interface PoV {
-  id: string;
-  title: string;
-  description: string;
-  status: POVStatus;
-  priority: Priority;
-  startDate: string;
-  endDate: string;
-  owner: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  team?: {
-    id: string;
-    name: string;
-    members: Array<{
-      user: {
-        id: string;
-        name: string;
-        email: string;
-      };
-    }>;
-  };
-}
+import { PoVDetails } from '@/lib/pov/types/core';
 
 interface PoVListProps {
-  povs: PoV[];
+  povs: PoVDetails[];
 }
 
 const getStatusVariant = (status: POVStatus) => {
@@ -88,7 +64,7 @@ const getPriorityVariant = (priority: Priority) => {
   }
 };
 
-export default function PoVList({ povs }: PoVListProps) {
+export function POVList({ povs }: PoVListProps) {
   const { user } = useAuth();
   const router = useRouter();
   const isAdmin = user?.role === UserRole.ADMIN || user?.role === UserRole.SUPER_ADMIN;
@@ -133,17 +109,19 @@ export default function PoVList({ povs }: PoVListProps) {
             </div>
 
             <div className="flex items-center gap-4">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{pov.owner.name}</span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>Owner: {pov.owner.name}</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              {pov.owner && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{pov.owner.name}</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>Owner: {pov.owner.name}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
 
               {pov.team && (
                 <TooltipProvider>
@@ -160,9 +138,9 @@ export default function PoVList({ povs }: PoVListProps) {
               )}
             </div>
 
-            {isAdmin && pov.team?.members && (
+            {isAdmin && pov.team?.members?.length > 0 && (
               <div className="mt-3 pt-3 border-t text-xs text-muted-foreground">
-                Team Members: {pov.team.members.map(m => m.user.name).join(', ')}
+                Team Members: {pov.team.members.map((m: { user: { name: string } }) => m.user.name).join(', ')}
               </div>
             )}
           </CardContent>

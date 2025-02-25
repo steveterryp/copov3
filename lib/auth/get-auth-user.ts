@@ -38,7 +38,7 @@ export async function getAuthUser(req: NextRequest): Promise<AuthUser | null> {
     }
 
     const user = {
-      userId: decoded.sub,
+      userId: decoded.userId || decoded.sub, // Support both formats
       email: decoded.email,
       role: decoded.role
     };
@@ -73,7 +73,7 @@ export async function getAuthUserFromServer(): Promise<AuthUser | null> {
     }
 
     const user = {
-      userId: decoded.sub,
+      userId: decoded.userId || decoded.sub, // Support both formats
       email: decoded.email,
       role: decoded.role
     };

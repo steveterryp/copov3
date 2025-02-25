@@ -57,8 +57,9 @@ export function useClientAuth() {
       const response = await fetch('/api/auth/me', {
         method: 'GET',
         headers: {
-          'Cache-Control': 'no-cache',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
+          'Expires': '0',
         },
         credentials: 'include',
       });

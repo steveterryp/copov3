@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { usePathname, useRouter } from "next/navigation"
-import Tabs, { TabsList, TabsTrigger } from "@/components/ui/Tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs"
 
 export default function POVLayout({
   children,

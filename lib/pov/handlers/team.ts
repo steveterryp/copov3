@@ -13,7 +13,7 @@ import { mapTeamMemberFromPrisma } from '../prisma/team';
 export async function getAvailableTeamMembersHandler(
   req: NextRequest,
   povId: string
-): Promise<AvailableTeamMembersResponse> {
+) {
   try {
     const user = await getAuthUser(req);
     if (!user) {
@@ -51,9 +51,8 @@ export async function getAvailableTeamMembersHandler(
       teamId: pov.teamId || undefined,
     });
 
-    return {
-      data: availableMembers.map(mapTeamMemberFromPrisma),
-    };
+    // Return the data directly without wrapping it in a data property
+    return Response.json(availableMembers.map(mapTeamMemberFromPrisma));
   } catch (error) {
     console.error('[getAvailableTeamMembersHandler]:', error);
     throw error;

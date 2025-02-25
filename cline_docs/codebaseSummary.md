@@ -7,67 +7,108 @@
 components/
 ├── admin/                   // Admin Interface
 │   ├── AuditLog/           // Audit logging
+│   │   └── AuditLogViewer.tsx // Activity viewer
 │   ├── PermissionManagement/ // Permission control
+│   │   └── PermissionManagement.tsx // Permission UI
 │   ├── UserManagement/     // User management
+│   │   ├── BulkActions.tsx // Bulk operations
 │   │   ├── UserFilter.tsx  // User filtering
+│   │   ├── UserManagement.tsx // Main component
 │   │   └── UserTable.tsx   // User list
-│   └── phases/             // Phase Management
-│       ├── TaskEditor.tsx  // Task template editor
-│       ├── TemplateEditModal.tsx // Template editing
-│       └── WorkflowEditModal.tsx // Workflow config
+│   ├── phases/             // Phase Management
+│   │   ├── TaskEditor.tsx  // Task template editor
+│   │   ├── TemplateEditModal.tsx // Template editing
+│   │   └── WorkflowEditModal.tsx // Workflow config
+│   ├── CustomRoleSelect.tsx // Role selection
+│   ├── RoleForm.tsx        // Role editing
+│   ├── RoleSelect.tsx      // Role picker
+│   ├── StatusSelect.tsx    // Status selection
+│   └── UserForm.tsx        // User editing
 ├── auth/                    // Authentication UI
 │   ├── LoginForm.tsx       // Login form
 │   ├── PasswordResetForm.tsx // Password reset
 │   └── RequestPasswordResetForm.tsx // Reset request
 ├── dashboard/              // Dashboard Components
+│   ├── DashboardLayout.tsx // Dashboard structure
 │   ├── DashboardWidgets.tsx // Widget container
+│   ├── GeoDistributionWidget.tsx // Geographical stats
 │   └── widgets/           // Dashboard Widgets
 │       ├── ActivePoVs.tsx // Active PoVs
 │       ├── Milestones.tsx // Milestones
+│       ├── PoVOverview.tsx // POV summary
 │       ├── ResourceUsage.tsx // Resources
 │       ├── RiskOverview.tsx // Risks
+│       ├── SuccessRate.tsx // Success metrics
+│       ├── TeamActivity.tsx // Team updates
 │       ├── TeamStatus.tsx // Team status
-│       └── WidgetErrorBoundary.tsx // Error handling
+│       ├── WidgetErrorBoundary.tsx // Error handling
+│       └── WidgetSkeleton.tsx // Loading state
 ├── layout/                // Layout Components
 │   ├── AppLayout.tsx     // Main app layout
 │   ├── AdminHeader.tsx   // Admin header
 │   ├── AdminNav.tsx      // Admin navigation
+│   ├── DashboardLayout.tsx // Dashboard layout
 │   ├── MobileNav.tsx     // Mobile navigation
 │   ├── NotificationBell.tsx // Notifications
 │   ├── SideNav.tsx       // Side navigation
 │   └── UserMenu.tsx      // User menu
 ├── notifications/        // Notification System
 │   ├── ActivityNotification.tsx // Activity alerts
-│   ├── NotificationCenter.tsx // Notification list
 │   ├── NotificationBell.tsx // Notification trigger
+│   ├── NotificationCenter.tsx // Notification list
 │   ├── NotificationItem.tsx // Single notification
 │   └── NotificationProvider.tsx // State provider
 ├── pov/                 // POV Components
 │   ├── crm/            // CRM Integration
+│   │   ├── FieldMapping.tsx // Field mapping
+│   │   └── SyncStatus.tsx // Sync status
+│   ├── creation/      // POV Creation
+│   │   ├── FormContext.tsx // Form state
+│   │   ├── PoVCreationForm.tsx // Main form
+│   │   ├── PoVFormContext.tsx // Form context
+│   │   └── steps/    // Creation Steps
+│   │       ├── BasicInfoForm.tsx // Basic info
+│   │       ├── MetricsGoals.tsx // Metrics
+│   │       ├── Resources.tsx // Resources
+│   │       ├── Review.tsx // Review
+│   │       ├── TeamSelection.tsx // Team
+│   │       └── WorkflowSetup.tsx // Workflow
+│   ├── kpi/           // KPI Management
+│   │   ├── HistoryChart.tsx // KPI history
+│   │   └── TemplateManager.tsx // KPI templates
+│   ├── launch/         // Launch Management
+│   │   ├── Checklist.tsx // Launch checklist
+│   │   └── StatusDashboard.tsx // Launch status
 │   ├── list/           // POV Listing
 │   │   └── PoVList.tsx // POV list view
-│   ├── launch/         // Launch Management
-│   ├── kpi/           // KPI Management
-│   ├── creation/      // POV Creation
-│   │   ├── steps/    // Creation Steps
-│   │   │   ├── BasicInfoForm.tsx
-│   │   │   ├── MetricsGoals.tsx
-│   │   │   ├── Resources.tsx
-│   │   │   ├── Review.tsx
-│   │   │   ├── TeamSelection.tsx
-│   │   │   └── WorkflowSetup.tsx
-│   │   └── PoVCreationForm.tsx
-│   └── phases/        // Phase Management
+│   ├── phases/        // Phase Management
+│   │   ├── ApprovalWorkflow.tsx // Approvals
+│   │   └── TemplateSelector.tsx // Templates
+│   ├── CreatePoVForm.tsx // POV creation
+│   ├── POVDetails.tsx // POV details
+│   ├── POVList.tsx // POV listing
+│   └── SelectPovDialog.tsx // POV selection
+├── providers/          // Context Providers
+│   ├── AuthProvider.tsx // Auth context
+│   ├── NotificationProvider.tsx // Notifications
+│   ├── Providers.tsx // Root provider
+│   ├── QueryProvider.tsx // React Query
+│   └── ThemeProvider.tsx // Theme context
+├── settings/          // Settings Components
+│   └── TimezoneSelect.tsx // Timezone selection
 ├── tasks/             // Task Management
+│   ├── TaskCard.tsx  // Task display
 │   ├── TaskCreate.tsx // Task creation
-│   ├── TaskList.tsx  // Task listing
-│   └── TaskCard.tsx  // Task display
+│   └── TaskList.tsx  // Task listing
 └── ui/               // Shadcn UI Components
     ├── Alert.tsx    // Alert messages
     ├── Avatar.tsx   // User avatars
     ├── Badge.tsx    // Status badges
+    ├── Breadcrumb.tsx // Navigation
     ├── Button.tsx   // Action buttons
+    ├── Calendar.tsx // Date picker
     ├── Card.tsx     // Content containers
+    ├── Chart.tsx    // Data visualization
     ├── Checkbox.tsx // Checkboxes
     ├── Command.tsx  // Command palette
     ├── Container.tsx // Layout container
@@ -76,16 +117,30 @@ components/
     ├── Dialog.tsx   // Modal dialogs
     ├── DropdownMenu.tsx // Dropdown menus
     ├── Form.tsx     // Form components
+    ├── GeographicalSelect.tsx // Location picker
     ├── Input.tsx    // Text inputs
     ├── Label.tsx    // Form labels
+    ├── LocationDisplay.tsx // Location display
+    ├── MigrationTemplate.tsx // Migration helper
+    ├── Popover.tsx  // Popovers
     ├── Progress.tsx // Progress bars
+    ├── RadioGroup.tsx // Radio buttons
+    ├── ScrollArea.tsx // Scrollable area
     ├── Select.tsx   // Select menus
+    ├── Separator.tsx // Visual divider
     ├── Sheet.tsx    // Slide-out panels
     ├── Skeleton.tsx // Loading states
+    ├── Slider.tsx   // Range slider
     ├── Spinner.tsx  // Loading indicator
+    ├── Stepper.tsx  // Step progress
+    ├── Switch.tsx   // Toggle switch
+    ├── Table.tsx    // Data tables
+    ├── Tabs.tsx     // Tab panels
+    ├── Textarea.tsx // Text areas
     ├── TextField.tsx // Text inputs
     ├── Timeline.tsx // Timeline display
     ├── Toast.tsx    // Toast notifications
+    ├── Toaster.tsx  // Toast container
     ├── Tooltip.tsx  // Tooltips
     └── icons/       // Icon components
 ```
@@ -97,13 +152,16 @@ app/api/
 │   ├── audit/              // Activity logging
 │   ├── crm/                // CRM Management
 │   │   ├── mapping/       // Field mapping
+│   │   │   └── [id]/     // Single mapping
 │   │   ├── settings/      // CRM settings
 │   │   └── sync/         // Sync operations
 │   ├── permissions/        // Permission management
 │   ├── phases/            // Phase templates
 │   │   ├── templates/     // Template management
+│   │   │   └── [id]/     // Single template
 │   │   └── workflow/      // Workflow config
 │   ├── roles/             // Role management
+│   │   └── [roleId]/     // Single role
 │   ├── settings/          // System settings
 │   └── users/             // User management
 ├── auth/                   // Authentication
@@ -111,15 +169,24 @@ app/api/
 │   ├── logout/            // User logout
 │   ├── me/                // Current user
 │   ├── password-reset/    // Password reset
+│   │   ├── request/      // Reset request
+│   │   └── reset/        // Reset execution
 │   ├── profile/           // User profile
 │   ├── refresh/           // Token refresh
 │   ├── register/          // User registration
 │   ├── revoke/            // Token revocation
 │   ├── verify/            // Email verification
+│   │   └── [token]/      // Token verification
 │   └── ws-token/          // WebSocket auth
 ├── dashboard/             // Dashboard Data
 │   ├── pov-overview/     // POV overview
 │   └── team-activity/    // Team activity
+├── geographical/         // Geographical Data
+│   ├── [regionId]/      // Region operations
+│   │   └── countries/   // Region countries
+│   └── theatre/         // Theatre operations
+│       └── [theatre]/   // Theatre data
+│           └── countries/ // Theatre countries
 ├── health/               // Health Checks
 │   └── db/              // Database health
 ├── manifest/            // App manifest
@@ -127,20 +194,27 @@ app/api/
 │   ├── clear/          // Clear all
 │   ├── read-all/       // Mark all read
 │   └── [notificationId]/ // Single notification
+│       └── read/       // Mark as read
 ├── pov/                // POV Management
-│   └── [povId]/        // Single POV
-│       ├── crm/        // CRM integration
-│       ├── kpi/        // KPI tracking
-│       ├── launch/     // Launch management
+│   ├── launch/         // Launch operations
+│   │   └── [id]/      // Single launch
+│   └── [povId]/       // Single POV
+│       ├── crm/       // CRM integration
+│       ├── kpi/       // KPI tracking
+│       ├── launch/    // Launch management
 │       │   ├── checklist/ // Launch checklist
 │       │   └── status/   // Launch status
-│       ├── phase/      // Phase management
+│       ├── phase/     // Phase management
 │       │   ├── multiple/ // Bulk operations
 │       │   ├── reorder/ // Phase reordering
 │       │   └── [phaseId]/ // Single phase
 │       │       └── task/ // Task management
-│       ├── phases/     // Phase operations
-│       └── team/       // Team management
+│       │           ├── available-assignees/ // Assignees
+│       │           ├── reorder/ // Task reordering
+│       │           └── [taskId]/ // Single task
+│       ├── phases/    // Phase operations
+│       └── team/      // Team management
+│           └── available/ // Available members
 ├── settings/           // User settings
 ├── support/           // Support system
 │   ├── feature/      // Feature requests
@@ -162,93 +236,170 @@ lib/
 │   ├── prisma/          // Database Layer
 │   │   ├── mappers.ts   // Type mappers
 │   │   └── select.ts    // Select types
-│   └── services/        // Business Logic
-│       ├── activity.ts  // Activity service
-│       ├── role.ts     // Role service
-│       ├── settings.ts // Settings service
-│       └── user.ts     // User service
-├── auth/                 // Authentication System
-│   ├── audit.ts         // Auth auditing
-│   ├── cache.ts         // Token caching
-│   ├── middleware.ts    // Auth middleware
-│   ├── permissions.ts   // Permission system
-│   ├── rbac.ts         // Role-based access
-│   ├── resources.ts    // Protected resources
-│   ├── token-manager.ts // Token handling
-│   └── verify.ts       // Token verification
-├── dashboard/           // Dashboard Module
-│   ├── handlers/       // Request Handlers
-│   ├── hooks/          // Custom Hooks
-│   │   └── useDashboard.ts
-│   ├── prisma/         // Database Layer
-│   │   ├── mappers.ts  // Type mappers
-│   │   └── select.ts   // Select types
-│   ├── services/       // Business Logic
-│   │   └── dashboard.ts
+│   ├── services/        // Business Logic
+│   │   ├── activity.ts  // Activity service
+│   │   ├── role.ts     // Role service
+│   │   ├── settings.ts // Settings service
+│   │   └── user.ts     // User service
 │   └── types/          // Type Definitions
-│       ├── enums.ts    // Dashboard enums
-│       ├── index.ts    // Type exports
-│       └── risk.ts     // Risk types
-├── hooks/              // Shared Hooks
-│   ├── useAuth.ts     // Authentication hook
+│       └── index.ts    // Type exports
+├── api/                // API Handlers
+│   └── pov-handler.ts // POV API handler
+├── auth/              // Authentication System
+│   ├── audit.ts      // Auth auditing
+│   ├── cache.ts      // Token caching
+│   ├── get-auth-user.ts // Auth user retrieval
+│   ├── get-client-auth.ts // Client auth
+│   ├── index.ts     // Auth exports
+│   ├── middleware.ts // Auth middleware
+│   ├── permissions.ts // Permission system
+│   ├── rbac.ts      // Role-based access
+│   ├── resources.ts // Protected resources
+│   ├── token-manager.ts // Token handling
+│   └── verify.ts    // Token verification
+├── dashboard/        // Dashboard Module
+│   ├── handlers/    // Request Handlers
+│   │   └── get.ts  // Get handlers
+│   ├── hooks/      // Custom Hooks
+│   │   └── useDashboard.ts // Dashboard hook
+│   ├── prisma/     // Database Layer
+│   │   ├── mappers.ts // Type mappers
+│   │   └── select.ts // Select types
+│   ├── services/   // Business Logic
+│   │   └── dashboard.ts // Dashboard service
+│   └── types/     // Type Definitions
+│       ├── enums.ts // Dashboard enums
+│       ├── index.ts // Type exports
+│       └── risk.ts // Risk types
+├── hooks/          // Shared Hooks
+│   ├── useAuth.ts // Authentication hook
 │   ├── useDateFormat.ts // Date formatting
+│   ├── useGeographical.ts // Geographical hook
+│   ├── useGeographicalDistribution.ts // Geo stats
 │   ├── useMediaQuery.ts // Responsive design
 │   ├── useNotifications.ts // Notifications
-│   ├── useSettings.ts  // Settings management
-│   ├── useToast.ts    // Toast notifications
+│   ├── usePoVSubmit.ts // POV submission
+│   ├── useSettings.ts // Settings management
+│   ├── useToast.ts  // Toast notifications
 │   └── useWebSocket.ts // WebSocket hook
-├── pov/               // POV Module
-│   ├── handlers/     // Request Handlers
-│   ├── prisma/       // Database Layer
-│   ├── services/     // Business Logic
+├── notifications/  // Notification System
+│   ├── handlers/  // Request Handlers
+│   │   ├── get.ts // Get handlers
+│   │   ├── post.ts // Post handlers
+│   │   └── read.ts // Read handlers
+│   ├── prisma/   // Database Layer
+│   │   ├── mappers.ts // Type mappers
+│   │   └── select.ts // Select types
+│   ├── services/ // Business Logic
+│   │   ├── activity.ts // Activity service
+│   │   ├── cleanup.ts // Cleanup service
+│   │   └── delivery.ts // Delivery service
+│   └── types/   // Type Definitions
+│       └── index.ts // Type exports
+├── pov/         // POV Module
+│   ├── handlers/ // Request Handlers
+│   │   ├── delete.ts // Delete handler
+│   │   ├── get.ts   // Get handler
+│   │   ├── post.ts  // Post handler
+│   │   ├── put.ts   // Put handler
+│   │   └── team.ts  // Team handler
+│   ├── prisma/   // Database Layer
+│   │   ├── mappers.ts // Type mappers
+│   │   ├── phase.ts  // Phase schema
+│   │   ├── select.ts // Select types
+│   │   ├── team.ts   // Team schema
+│   │   └── user-mappers.ts // User mappers
+│   ├── services/ // Business Logic
 │   │   ├── activity.ts // Activity tracking
 │   │   ├── crm.ts    // CRM integration
 │   │   ├── kpi.ts    // KPI management
 │   │   ├── launch.ts // Launch process
+│   │   ├── metadata.ts // Metadata service
 │   │   ├── phase.ts  // Phase management
+│   │   ├── pov.ts    // POV service
+│   │   ├── status.ts // Status service
+│   │   ├── team.ts   // Team service
+│   │   ├── validation.ts // Validation
 │   │   └── workflow.ts // Workflow engine
-│   └── types/       // Type Definitions
-├── tasks/           // Tasks Module
-│   ├── handlers/    // Request Handlers
-│   ├── prisma/      // Database Layer
-│   ├── services/    // Business Logic
-│   └── types/       // Type Definitions
-├── utils/          // Utilities
+│   └── types/    // Type Definitions
+│       ├── core.ts   // Core types
+│       ├── crm.ts    // CRM types
+│       ├── kpi.ts    // KPI types
+│       ├── launch.ts // Launch types
+│       ├── phase.ts  // Phase types
+│       ├── requests.ts // Request types
+│       ├── status.ts // Status types
+│       ├── team.ts   // Team types
+│       └── workflow.ts // Workflow types
+├── services/    // Shared Services
+│   └── geographicalService.ts // Geo service
+├── settings/   // Settings Module
+│   ├── handlers/ // Request Handlers
+│   │   ├── get.ts // Get handlers
+│   │   └── put.ts // Put handlers
+│   ├── prisma/  // Database Layer
+│   │   ├── mappers.ts // Type mappers
+│   │   └── select.ts // Select types
+│   ├── services/ // Business Logic
+│   │   └── settings.ts // Settings service
+│   └── types/  // Type Definitions
+│       └── index.ts // Type exports
+├── store/     // State Management
+│   └── auth.ts // Auth store
+├── tasks/     // Tasks Module
+│   ├── handlers/ // Request Handlers
+│   │   ├── assignee.ts // Assignee handler
+│   │   ├── get.ts    // Get handler
+│   │   ├── post.ts   // Post handler
+│   │   └── task.ts   // Task handler
+│   ├── prisma/  // Database Layer
+│   │   ├── mappers.ts // Type mappers
+│   │   └── select.ts // Select types
+│   ├── services/ // Business Logic
+│   │   ├── activity.ts // Activity service
+│   │   ├── notification.ts // Notifications
+│   │   └── task.ts   // Task service
+│   └── types/  // Type Definitions
+│       └── index.ts // Type exports
+├── types/     // Shared Types
+│   ├── auth.ts // Auth types
+│   ├── notification.ts // Notification types
+│   ├── phase.ts // Phase types
+│   ├── pov.ts  // POV types
+│   ├── settings.ts // Settings types
+│   ├── sse.ts  // SSE types
+│   ├── support.ts // Support types
+│   ├── task.ts // Task types
+│   └── team.ts // Team types
+├── utils/     // Utilities
+│   ├── cn.ts  // Class names
 │   └── dateFormat.ts // Date formatting
-├── validation/     // Validation Logic
-│   └── pov.ts     // POV validation
-├── websocket/     // WebSocket System
+├── validation/ // Validation Logic
+│   ├── base.ts // Base validator
+│   └── pov.ts // POV validation
+├── websocket/ // WebSocket System
 │   ├── activityServer.ts // Activity streaming
-│   └── token.ts   // WS authentication
+│   └── token.ts // WS authentication
 ├── api-handler.ts // API utilities
-├── config.ts     // Configuration
-├── cookies.ts    // Cookie management
-├── db-init.ts    // Database setup
-├── email.ts      // Email service
-├── errors.ts     // Error handling
-├── jwt.ts        // JWT utilities
-├── logger.ts     // Logging system
-├── prisma.ts     // Prisma client
+├── config.ts    // Configuration
+├── cookies.ts   // Cookie management
+├── db-init.ts   // Database setup
+├── email.ts     // Email service
+├── errors.ts    // Error handling
+├── jwt.ts       // JWT utilities
+├── logger.ts    // Logging system
+├── prisma.ts    // Prisma client
 ├── server-init.ts // Server setup
-└── theme.ts      // Theme system
+└── theme.ts     // Theme system
 ```
 
 ### Integration Layer
-```
-lib/integrations/
-├── salesforce/              // Salesforce Integration
-│   ├── client.ts           // API client
-│   ├── sync.ts            // Data synchronization
-│   └── types.ts           // Type definitions
-├── jira/                   // Jira Integration
-│   ├── client.ts          // API client
-│   ├── tickets.ts         // Ticket management
-│   └── types.ts           // Type definitions
-└── messaging/             // Platform Integration
-    ├── slack.ts           // Slack integration
-    ├── teams.ts           // Teams integration
-    └── webhook.ts         // Webhook handling
-```
+Integration functionality is currently implemented within the respective service modules rather than in a dedicated integrations directory. For example:
+
+- CRM Integration: Implemented in lib/pov/services/crm.ts
+- Activity Tracking: Implemented in lib/pov/services/activity.ts
+- Notification Delivery: Implemented in lib/notifications/services/delivery.ts
+- WebSocket Communication: Implemented in lib/websocket/
 
 ### Test Infrastructure
 ```
@@ -479,6 +630,17 @@ test/
     - Performance metrics
     - Accessibility testing
     - User journey validation
+
+### 13. Geographical Service Refactoring
+- Refactored geographical service to use Prisma query builder:
+  - Replaced raw SQL queries with type-safe Prisma queries
+  - Enhanced data validation and consistency checks
+  - Improved error handling and logging
+  - Added comprehensive documentation
+  - Better type safety with Prisma's built-in types
+  - Optimized database queries with proper relations
+  - Enhanced geographical validation system
+  - Improved analytics with Prisma aggregations
 
 ### Recent Branch Activities
 1. feat/shadcn-migration (Completed):

@@ -12,8 +12,18 @@ interface RouteParams {
 
 export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
-    const response = await getPoVHandler(req, { params })
-    return NextResponse.json(response)
+    // getPoVHandler now returns the POV data directly
+    const pov = await getPoVHandler(req, { params });
+    
+    // Use NextResponse.json to create a proper JSON response
+    return NextResponse.json(pov, {
+      status: 200,
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
+    });
   } catch (error) {
     console.error('[PoV Get Error]:', error)
     return handleApiError(error)

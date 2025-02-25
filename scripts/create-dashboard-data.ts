@@ -1,4 +1,4 @@
-import { PrismaClient, POVStatus, Priority, PhaseType, Prisma } from '@prisma/client';
+import { PrismaClient, POVStatus, Priority, PhaseType, Prisma, SalesTheatre } from '@prisma/client';
 import { UserRole } from '../lib/types/auth';
 import { TeamRole } from '../lib/types/team';
 import bcrypt from 'bcryptjs';
@@ -45,6 +45,35 @@ async function main() {
   await prisma.user.deleteMany();
   await prisma.kPITemplate.deleteMany();
   await prisma.pOVKPI.deleteMany();
+
+  // Get all countries
+  const countries = await prisma.country.findMany() as unknown as Array<{
+    id: string;
+    name: string;
+    code: string;
+    theatre: SalesTheatre;
+  }>;
+
+  // Get regions for each country
+  const regionsMap = new Map();
+  
+  for (const country of countries) {
+    const regions = await prisma.$queryRaw`
+      SELECT id, name, type, "countryId"
+      FROM "Region"
+      WHERE "countryId" = ${country.id}
+    ` as Array<{
+      id: string;
+      name: string;
+      type: string;
+      countryId: string;
+    }>;
+    regionsMap.set(country.id, regions);
+  }
+
+  if (countries.length === 0) {
+    throw new Error('No countries found. Please run the geographical seed script first.');
+  }
 
   // Create KPI templates
   const kpiTemplates = await Promise.all([
@@ -213,6 +242,16 @@ async function main() {
       const priority = priorities[Math.floor(Math.random() * priorities.length)];
       const team = teams[Math.floor(Math.random() * teams.length)];
       
+      // Select random country and its regions
+      const country = countries[Math.floor(Math.random() * countries.length)];
+      const countryRegions = regionsMap.get(country.id) || [];
+      
+      if (countryRegions.length === 0) {
+        throw new Error(`No regions found for country ${country.name}`);
+      }
+
+      const region = countryRegions[Math.floor(Math.random() * countryRegions.length)];
+      
       const pov = await prisma.pOV.create({
         data: {
           title: userPovTitles[i],
@@ -223,6 +262,9 @@ async function main() {
           endDate: new Date(Date.now() + (60 - 30 * i) * 24 * 60 * 60 * 1000),
           ownerId: user.id,
           teamId: team.id,
+          salesTheatre: country.theatre,
+          countryId: country.id,
+          regionId: region.id,
           phases: {
             create: phaseTypes.map((type, phaseIndex) => ({
               name: `${type} Phase`,

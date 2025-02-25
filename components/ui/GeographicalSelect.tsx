@@ -1,4 +1,4 @@
-import { useRegions, useCountriesByRegion } from '@/lib/hooks/useGeographical';
+import { useQuery } from '@tanstack/react-query';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 import { SalesTheatre } from '@prisma/client';
 import { Label } from '@/components/ui/Label';
@@ -22,32 +22,51 @@ export function GeographicalSelect({
   onChange,
   disabled = false,
 }: GeographicalSelectProps) {
-  // Fetch data
-  const { data: regions, isLoading: regionsLoading } = useRegions();
-  const { data: countries, isLoading: countriesLoading } = useCountriesByRegion(selectedRegion);
+  // Fetch countries by theatre
+  const { data: countries, isLoading: countriesLoading } = useQuery<{
+    id: string;
+    name: string;
+    regions: { id: string; name: string }[];
+  }[]>({
+    queryKey: ['countries', selectedTheatre],
+    queryFn: async () => {
+      if (!selectedTheatre) return [];
+      const response = await fetch(`/api/geographical/theatre/${selectedTheatre}/countries`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch countries');
+      }
+      return response.json();
+    },
+    enabled: !!selectedTheatre,
+  });
+
+  // Get regions for selected country
+  const regions = selectedCountry 
+    ? countries?.find(c => c.id === selectedCountry)?.regions || []
+    : [];
 
   // Handle changes
   const handleTheatreChange = (theatre: SalesTheatre) => {
     onChange({ 
       theatre,
-      regionId: undefined,
-      countryId: undefined
-    });
-  };
-
-  const handleRegionChange = (regionId: string) => {
-    onChange({
-      theatre: selectedTheatre,
-      regionId,
-      countryId: undefined
+      countryId: undefined,
+      regionId: undefined
     });
   };
 
   const handleCountryChange = (countryId: string) => {
     onChange({
       theatre: selectedTheatre,
-      regionId: selectedRegion,
-      countryId
+      countryId,
+      regionId: undefined
+    });
+  };
+
+  const handleRegionChange = (regionId: string) => {
+    onChange({
+      theatre: selectedTheatre,
+      countryId: selectedCountry,
+      regionId
     });
   };
 
@@ -66,27 +85,7 @@ export function GeographicalSelect({
           <SelectContent>
             {Object.values(SalesTheatre).map((theatre) => (
               <SelectItem key={theatre} value={theatre}>
-                {theatre}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label>Region</Label>
-        <Select
-          value={selectedRegion}
-          onValueChange={handleRegionChange}
-          disabled={disabled || regionsLoading || !regions?.length}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select region" />
-          </SelectTrigger>
-          <SelectContent>
-            {regions?.map((region) => (
-              <SelectItem key={region.id} value={region.id}>
-                {region.name}
+                {theatre.replace('_', ' ')}
               </SelectItem>
             ))}
           </SelectContent>
@@ -98,7 +97,7 @@ export function GeographicalSelect({
         <Select
           value={selectedCountry}
           onValueChange={handleCountryChange}
-          disabled={disabled || countriesLoading || !selectedRegion || !countries?.length}
+          disabled={disabled || countriesLoading || !selectedTheatre || !countries?.length}
         >
           <SelectTrigger>
             <SelectValue placeholder="Select country" />
@@ -107,6 +106,26 @@ export function GeographicalSelect({
             {countries?.map((country) => (
               <SelectItem key={country.id} value={country.id}>
                 {country.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Region</Label>
+        <Select
+          value={selectedRegion}
+          onValueChange={handleRegionChange}
+          disabled={disabled || !selectedCountry || !regions.length}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select region" />
+          </SelectTrigger>
+          <SelectContent>
+            {regions.map((region) => (
+              <SelectItem key={region.id} value={region.id}>
+                {region.name}
               </SelectItem>
             ))}
           </SelectContent>

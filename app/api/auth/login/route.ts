@@ -138,7 +138,7 @@ export async function POST(request: Request) {
     console.log('[Login Route] Setting access token cookie:', config.cookie.accessToken);
     response.cookies.set(config.cookie.accessToken, accessToken, {     
       httpOnly: true,
-      secure: false, // Set to false for localhost
+      secure: config.cookie.secure, // Use dynamic secure setting from config
       sameSite: 'lax',
       path: '/',
       maxAge: parseInt(config.jwt.accessExpiration) * 60 * 1000, // Convert minutes to milliseconds
@@ -146,7 +146,7 @@ export async function POST(request: Request) {
     console.log('[Login Route] Access token cookie set');
 
     console.log('[Login Route] Setting refresh token cookie:', config.cookie.refreshToken);
-    response.cookies.set(config.cookie.refreshToken, refreshToken, {   
+    response.cookies.set(config.cookie.refreshToken, refreshToken, {
       httpOnly: true,
       secure: false, // Set to false for localhost
       sameSite: 'lax',

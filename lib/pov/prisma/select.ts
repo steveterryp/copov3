@@ -82,18 +82,34 @@ export const fullPOV = Prisma.validator<Prisma.POVDefaultArgs>()({
       select: {
         id: true,
         name: true,
-        email: true
+        email: true,
+        role: true
       }
     },
     team: {
-      select: {
-        id: true,
-        name: true
+      include: {
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true
+              }
+            }
+          }
+        }
       }
     },
     phases: {
       include: {
-        template: true
+        template: true,
+        tasks: {
+          include: {
+            assignee: true
+          }
+        }
       }
     },
     milestones: true,
@@ -108,7 +124,9 @@ export const fullPOV = Prisma.validator<Prisma.POVDefaultArgs>()({
         createdAt: 'desc'
       },
       take: 1
-    }
+    },
+    country: true,
+    region: true
   }
 });
 

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { POVStatus, Priority } from '@/lib/pov/types/core';
+import { SalesTheatre } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -28,7 +29,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
+import { GeographicalSelect } from '@/components/ui/GeographicalSelect';
+
 const povFormSchema = z.object({
+  salesTheatre: z.nativeEnum(SalesTheatre).optional(),
+  regionId: z.string().optional(),
+  countryId: z.string().optional(),
   name: z.string().min(1, 'Name is required'),
   customer: z.string().min(1, 'Customer is required'),
   description: z.string().min(1, 'Description is required'),
@@ -56,6 +62,9 @@ export default function CreatePovPage() {
       successCriteria: '',
       technicalRequirements: '',
       teamSize: '1-2',
+      salesTheatre: undefined,
+      regionId: undefined,
+      countryId: undefined,
     },
   });
 
@@ -72,7 +81,7 @@ export default function CreatePovPage() {
       ));
 
       const endDate = new Date(startDate);
-      endDate.setUTCDate(startDate.getUTCDate() + parseInt(data.expectedDuration));
+      endDate.setUTCDate(startDate.getUTCDate() + parseInt(data.expectedDuration, 10));
 
       // Validate dates
       if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
@@ -81,6 +90,9 @@ export default function CreatePovPage() {
 
       // Create request data with validated dates
       const requestData = {
+        salesTheatre: data.salesTheatre,
+        regionId: data.regionId,
+        countryId: data.countryId,
         title: data.name,
         description: data.description,
         status: POVStatus.PROJECTED, // Always start as projected
@@ -254,10 +266,26 @@ export default function CreatePovPage() {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="teamSize"
-              render={({ field }) => (
+            <div className="space-y-6">
+              <div>
+                <FormLabel>Geographical Information</FormLabel>
+                <GeographicalSelect
+                  selectedTheatre={form.watch('salesTheatre')}
+                  selectedRegion={form.watch('regionId')}
+                  selectedCountry={form.watch('countryId')}
+                  onChange={({ theatre, regionId, countryId }) => {
+                    form.setValue('salesTheatre', theatre);
+                    form.setValue('regionId', regionId);
+                    form.setValue('countryId', countryId);
+                  }}
+                />
+                <FormDescription>Select the geographical location for this POV</FormDescription>
+              </div>
+
+              <FormField
+                control={form.control}
+                name="teamSize"
+                render={({ field }) => (
                 <FormItem>
                   <FormLabel>Team Size</FormLabel>
                   <Select
@@ -277,7 +305,8 @@ export default function CreatePovPage() {
                   <FormMessage />
                 </FormItem>
               )}
-            />
+              />
+            </div>
 
             <div className="flex justify-end gap-4">
               <Button
