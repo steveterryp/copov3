@@ -3,39 +3,24 @@ import { ApiError } from "@/lib/errors"
 import { Prisma } from "@prisma/client"
 import { PoVCreateInput, PoVUpdateInput } from "@/lib/pov/types/core"
 
-const povInclude = {
-  phases: {
-    include: {
-      tasks: true
-    }
-  },
-  owner: true,
-  team: {
-    include: {
-      members: {
-        include: {
-          user: true
-        }
-      }
-    }
-  },
-  country: true,
-  region: true,
-} satisfies Prisma.POVInclude;
+import { fullPOV } from '../prisma/select';
 
 export class PoVService {
   async create(data: PoVCreateInput) {
     return prisma.pOV.create({
       data,
-      include: povInclude,
+      include: fullPOV.include,
     })
   }
 
   async get(id: string) {
-    return prisma.pOV.findUnique({
+    console.log(`[povService.get] Fetching POV with ID: ${id}`);
+    const pov = await prisma.pOV.findUnique({
       where: { id },
-      include: povInclude,
-    })
+      include: fullPOV.include,
+    });
+    console.log(`[povService.get] Prisma query result for POV ID ${id}:`, pov);
+    return pov;
   }
 
   async list(userId?: string, isAdmin: boolean = false) {
@@ -54,14 +39,7 @@ export class PoVService {
           }
         ]
       },
-      include: {
-        ...povInclude,
-        kpis: {
-          include: {
-            template: true
-          }
-        },
-      },
+      include: fullPOV.include,
       orderBy: {
         createdAt: 'desc'
       }
@@ -72,7 +50,7 @@ export class PoVService {
     return prisma.pOV.update({
       where: { id },
       data,
-      include: povInclude,
+      include: fullPOV.include,
     })
   }
 
@@ -87,7 +65,7 @@ export class PoVService {
       where: { id },
       include: {
         pov: {
-          include: povInclude,
+          include: fullPOV.include,
         },
       },
     })
@@ -97,6 +75,14 @@ export class PoVService {
     return prisma.phase.findMany({
       where: {
         povId,
+      },
+      include: {
+        tasks: {
+          include: {
+            assignee: true
+          }
+        },
+        template: true
       },
       orderBy: {
         order: 'asc',
@@ -112,6 +98,14 @@ export class PoVService {
           connect: { id: povId },
         },
       },
+      include: {
+        tasks: {
+          include: {
+            assignee: true
+          }
+        },
+        template: true
+      },
     })
   }
 
@@ -119,6 +113,14 @@ export class PoVService {
     return prisma.phase.update({
       where: { id },
       data,
+      include: {
+        tasks: {
+          include: {
+            assignee: true
+          }
+        },
+        template: true
+      },
     })
   }
 

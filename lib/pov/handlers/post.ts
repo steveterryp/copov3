@@ -68,7 +68,8 @@ export async function createPoVHandler(
     }),
   });
 
-  return Response.json(pov);
+  // Return the POV data directly
+  return pov;
 }
 
 export async function createPhaseHandler(
@@ -126,5 +127,6 @@ export async function createPhaseHandler(
     templateId: validatedData.data.templateId,
   });
 
-  return Response.json(phase);
+  // Return the phase data directly
+  return phase;
 }

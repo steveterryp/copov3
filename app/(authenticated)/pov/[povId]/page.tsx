@@ -79,7 +79,7 @@ export default function PoVDetailPage({ params }: { params: { povId: string } })
         if (!response.ok) {
           throw new Error('Failed to fetch PoV');
         }
-        const { data } = await response.json();
+        const data = await response.json();
         setPov(data);
       } catch (err) {
         setError(err instanceof Error ? err : new Error('An error occurred'));

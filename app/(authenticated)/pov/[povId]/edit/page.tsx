@@ -82,12 +82,12 @@ export default function PoVEditPage({ params }: { params: { povId: string } }) {
           throw new Error('Failed to fetch PoV');
         }
 
-        const { data: povData } = await povResponse.json();
+        const povData = await povResponse.json();
         setPov(povData);
         setSelectedTeamMembers(povData.team?.members?.map((m: any) => m.user) || []);
 
         if (usersResponse.ok) {
-          const { data: usersData } = await usersResponse.json();
+          const usersData = await usersResponse.json();
           setUsers(usersData);
         }
       } catch (err) {

@@ -46,13 +46,14 @@ export class PoVGeographicalValidator extends BaseValidator<PoVGeographicalData>
       return true;
     }
 
-    const region = await prisma.$queryRaw<Region[]>`
-      SELECT * FROM "Region"
-      WHERE id = ${data.regionId}
-      AND "countryId" = ${data.countryId}
-    `;
+    const region = await prisma.region.findFirst({
+      where: {
+        id: data.regionId,
+        countryId: data.countryId
+      }
+    });
 
-    return region.length > 0;
+    return region !== null;
   }
 }
 
@@ -66,51 +67,54 @@ export class GeographicalService {
 
   // Region Operations
   async getRegions(): Promise<Region[]> {
-    return this.prisma.$queryRaw<Region[]>`
-      SELECT r.*, c.name as country_name
-      FROM "Region" r
-      LEFT JOIN "Country" c ON r."countryId" = c.id
-      ORDER BY r.name ASC
-    `;
+    return this.prisma.region.findMany({
+      include: {
+        country: true
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    });
   }
 
   // Country Operations
   async getCountriesByRegion(regionId: string): Promise<CountryWithRegions[]> {
-    return this.prisma.$queryRaw<CountryWithRegions[]>`
-      SELECT 
-        c.*,
-        json_agg(
-          json_build_object(
-            'id', r.id,
-            'name', r.name,
-            'type', r.type
-          )
-        ) as regions
-      FROM "Country" c
-      LEFT JOIN "Region" r ON r."countryId" = c.id
-      WHERE r.id = ${regionId}
-      GROUP BY c.id
-      ORDER BY c.name ASC
-    `;
+    const region = await this.prisma.region.findUnique({
+      where: { id: regionId },
+      include: {
+        country: {
+          include: {
+            regions: {
+              select: {
+                id: true,
+                name: true,
+                type: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    return region ? [region.country] : [];
   }
 
   async getCountriesByTheatre(theatre: SalesTheatre): Promise<CountryWithRegions[]> {
-    return this.prisma.$queryRaw<CountryWithRegions[]>`
-      SELECT 
-        c.*,
-        json_agg(
-          json_build_object(
-            'id', r.id,
-            'name', r.name,
-            'type', r.type
-          )
-        ) as regions
-      FROM "Country" c
-      LEFT JOIN "Region" r ON r."countryId" = c.id
-      WHERE c.theatre = ${theatre}::text::"SalesTheatre"
-      GROUP BY c.id
-      ORDER BY c.name ASC
-    `;
+    return this.prisma.country.findMany({
+      where: { theatre },
+      include: {
+        regions: {
+          select: {
+            id: true,
+            name: true,
+            type: true
+          }
+        }
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    });
   }
 
   // PoV Geographical Operations
@@ -145,52 +149,52 @@ export class GeographicalService {
     byRegion: Record<string, { name: string; count: number }>;
     byCountry: Record<string, { name: string; count: number }>;
   }> {
-    const [theatreStats, regionStats, countryStats] = await Promise.all([
-      // Get PoV count by theatre
-      this.prisma.$queryRaw<{ theatre: SalesTheatre; count: number }[]>`
-        SELECT theatre, COUNT(*) as count
-        FROM "POV"
-        GROUP BY theatre
-      `,
-
-      // Get PoV count by region
-      this.prisma.$queryRaw<{ id: string; name: string; count: number }[]>`
-        SELECT r.id, r.name, COUNT(p.id) as count
-        FROM "Region" r
-        LEFT JOIN "POV" p ON p."regionId" = r.id
-        GROUP BY r.id, r.name
-      `,
-
-      // Get PoV count by country
-      this.prisma.$queryRaw<{ id: string; name: string; count: number }[]>`
-        SELECT c.id, c.name, COUNT(p.id) as count
-        FROM "Country" c
-        LEFT JOIN "POV" p ON p."countryId" = c.id
-        GROUP BY c.id, c.name
-      `,
+    const [povs, regions, countries] = await Promise.all([
+      this.prisma.pOV.groupBy({
+        by: ['salesTheatre'],
+        _count: true
+      }),
+      this.prisma.region.findMany({
+        include: {
+          _count: {
+            select: {
+              povs: true
+            }
+          }
+        }
+      }),
+      this.prisma.country.findMany({
+        include: {
+          _count: {
+            select: {
+              povs: true
+            }
+          }
+        }
+      })
     ]);
 
     return {
-      byTheatre: theatreStats.reduce((acc, stat) => {
-        acc[stat.theatre] = Number(stat.count);
+      byTheatre: povs.reduce((acc, stat) => {
+        acc[stat.salesTheatre] = stat._count;
         return acc;
       }, {} as Record<SalesTheatre, number>),
 
-      byRegion: regionStats.reduce((acc, region) => {
+      byRegion: regions.reduce((acc, region) => {
         acc[region.id] = {
           name: region.name,
-          count: Number(region.count),
+          count: region._count.povs
         };
         return acc;
       }, {} as Record<string, { name: string; count: number }>),
 
-      byCountry: countryStats.reduce((acc, country) => {
+      byCountry: countries.reduce((acc, country) => {
         acc[country.id] = {
           name: country.name,
-          count: Number(country.count),
+          count: country._count.povs
         };
         return acc;
-      }, {} as Record<string, { name: string; count: number }>),
+      }, {} as Record<string, { name: string; count: number }>)
     };
   }
 }

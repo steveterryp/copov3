@@ -51,7 +51,12 @@ function ChecklistSkeleton() {
   )
 }
 
-function groupByCategory(items: ChecklistItem[]) {
+function groupByCategory(items: ChecklistItem[] | any): Record<string, ChecklistItem[]> {
+  // Ensure items is an array before calling reduce
+  if (!Array.isArray(items)) {
+    return {};
+  }
+  
   return items.reduce((groups, item) => {
     const category = item.category || 'Uncategorized'
     if (!groups[category]) {
@@ -82,7 +87,9 @@ export default function LaunchChecklistPage() {
     )
   }
 
-  const groupedItems = groupByCategory(checklist || [])
+  // Ensure checklist is an array
+  const checklistArray = Array.isArray(checklist) ? checklist : [];
+  const groupedItems = groupByCategory(checklistArray);
 
   return (
     <Container className="py-6">
@@ -93,14 +100,14 @@ export default function LaunchChecklistPage() {
         </p>
       </div>
 
-      {Object.entries(groupedItems).map(([category, items], index) => (
+      {Object.entries(groupedItems).map(([category, items]: [string, any], index) => (
         <Card key={category} className="mb-4">
           <CardHeader>
             <h3 className="text-lg font-semibold">{category}</h3>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {items.map((item, itemIndex) => (
+              {items.map((item: ChecklistItem, itemIndex: number) => (
                 <React.Fragment key={item.id}>
                   {itemIndex > 0 && <Separator className="my-2" />}
                   <li className="flex items-start gap-4">
