@@ -7,47 +7,53 @@ declare global {
 
 // Initialize Prisma Client with minimal connection pooling
 function createPrismaClient(): PrismaClient {
-  let dbUrl = process.env.DATABASE_URL;
-  if (!dbUrl) {
-    throw new Error('DATABASE_URL environment variable is not set');
-  }
+  // Check if we're running on the server side
+  if (typeof window === 'undefined') {
+    let dbUrl = process.env.DATABASE_URL;
+    if (!dbUrl) {
+      throw new Error('DATABASE_URL environment variable is not set');
+    }
 
-  // Add connection pooling parameters if not already present
-  try {
-    const url = new URL(dbUrl);
-    const params = new URLSearchParams(url.search);
-    
-    // Only set parameters if they don't exist
-    if (!params.has('pgbouncer')) params.set('pgbouncer', 'true');
-    if (!params.has('pool_timeout')) params.set('pool_timeout', '5');
-    if (!params.has('connection_limit')) params.set('connection_limit', '3');
-    
-    url.search = params.toString();
-    dbUrl = url.toString();
-  } catch (error) {
-    console.error('Invalid DATABASE_URL:', error);
-    throw new Error('Invalid DATABASE_URL environment variable');
-  }
+    // Add connection pooling parameters if not already present
+    try {
+      const url = new URL(dbUrl);
+      const params = new URLSearchParams(url.search);
+      
+      // Only set parameters if they don't exist
+      if (!params.has('pgbouncer')) params.set('pgbouncer', 'true');
+      if (!params.has('pool_timeout')) params.set('pool_timeout', '5');
+      if (!params.has('connection_limit')) params.set('connection_limit', '3');
+      
+      url.search = params.toString();
+      dbUrl = url.toString();
+    } catch (error) {
+      console.error('Invalid DATABASE_URL:', error);
+      throw new Error('Invalid DATABASE_URL environment variable');
+    }
 
-  return new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? [
-      { emit: 'event', level: 'query' },
-      { emit: 'stdout', level: 'error' },
-      { emit: 'stdout', level: 'info' },
-      { emit: 'stdout', level: 'warn' },
-    ] : undefined,
-    datasources: {
-      db: {
-        url: dbUrl,
+    return new PrismaClient({
+      log: process.env.NODE_ENV === 'development' ? [
+        { emit: 'event', level: 'query' },
+        { emit: 'stdout', level: 'error' },
+        { emit: 'stdout', level: 'info' },
+        { emit: 'stdout', level: 'warn' },
+      ] : undefined,
+      datasources: {
+        db: {
+          url: dbUrl,
+        },
       },
-    },
-  });
+    });
+  }
+  
+  // Return a mock PrismaClient for client-side rendering
+  return {} as PrismaClient;
 }
 
 // For development, use a global variable to prevent multiple instances during hot reloading
-const prisma = global.prismaClient || createPrismaClient();
+const prisma = global.prismaClient || (typeof window === 'undefined' ? createPrismaClient() : {} as PrismaClient);
 
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === 'development' && typeof window === 'undefined') {
   global.prismaClient = prisma;
 }
 
@@ -80,10 +86,12 @@ async function checkDatabaseConnection(): Promise<boolean> {
   }
 }
 
-// Initialize connection
-prisma.$connect().catch((e: Error) => {
-  console.error('[Prisma] Failed to connect:', e);
-  process.exit(1);
-});
+// Initialize connection only on the server side
+if (typeof window === 'undefined') {
+  prisma.$connect().catch((e: Error) => {
+    console.error('[Prisma] Failed to connect:', e);
+    process.exit(1);
+  });
+}
 
 export { prisma, PrismaClient, checkDatabaseConnection };

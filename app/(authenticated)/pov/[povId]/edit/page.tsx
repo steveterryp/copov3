@@ -37,6 +37,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { POVStatus, Priority } from '@/lib/types/pov';
+import { SalesTheatre } from '@prisma/client';
+import { GeographicalSelect } from '@/components/ui/GeographicalSelect';
 
 interface User {
   id: string;
@@ -68,6 +70,11 @@ export default function PoVEditPage({ params }: { params: { povId: string } }) {
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<Error | null>(null);
+  const [geoData, setGeoData] = React.useState<{
+    theatre?: SalesTheatre;
+    regionId?: string;
+    countryId?: string;
+  }>({});
 
   React.useEffect(() => {
     async function fetchData() {
@@ -88,7 +95,10 @@ export default function PoVEditPage({ params }: { params: { povId: string } }) {
 
         if (usersResponse.ok) {
           const usersData = await usersResponse.json();
-          setUsers(usersData);
+          console.log('Available team members:', usersData);
+          setUsers(Array.isArray(usersData) ? usersData : []);
+        } else {
+          console.error('Failed to fetch team members:', await usersResponse.text());
         }
       } catch (err) {
         setError(err instanceof Error ? err : new Error('An error occurred'));
@@ -113,6 +123,9 @@ export default function PoVEditPage({ params }: { params: { povId: string } }) {
           ...data,
           teamMembers: data.teamMembers.map(user => user.id),
           metadata: pov.metadata,
+          salesTheatre: geoData.theatre,
+          countryId: geoData.countryId,
+          regionId: geoData.regionId,
         }),
       });
 
@@ -151,6 +164,13 @@ export default function PoVEditPage({ params }: { params: { povId: string } }) {
         startDate: new Date(pov.startDate),
         endDate: new Date(pov.endDate),
         teamMembers: selectedTeamMembers,
+      });
+      
+      // Initialize geographical data
+      setGeoData({
+        theatre: pov.salesTheatre,
+        countryId: pov.countryId,
+        regionId: pov.regionId
       });
     }
   }, [pov, selectedTeamMembers, form]);
@@ -340,6 +360,17 @@ export default function PoVEditPage({ params }: { params: { povId: string } }) {
               />
             </div>
 
+            <FormItem>
+              <FormLabel>Location</FormLabel>
+              <GeographicalSelect
+                selectedTheatre={geoData.theatre}
+                selectedRegion={geoData.regionId}
+                selectedCountry={geoData.countryId}
+                onChange={setGeoData}
+                disabled={saving}
+              />
+            </FormItem>
+
             <FormField
               control={form.control}
               name="teamMembers"
@@ -350,7 +381,7 @@ export default function PoVEditPage({ params }: { params: { povId: string } }) {
                     <CommandInput placeholder="Search team members..." />
                     <CommandEmpty>No team members found.</CommandEmpty>
                     <CommandGroup>
-                      {users.map((user) => (
+                      {Array.isArray(users) && users.map((user) => (
                         <CommandItem
                           key={user.id}
                           onSelect={() => {

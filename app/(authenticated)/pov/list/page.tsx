@@ -1,10 +1,12 @@
 'use client';
 
-import { PoVDetails } from '@/lib/pov/types/core';
+import { PoVDetails, PoVFilters } from '@/lib/pov/types/core';
+import { SalesTheatre } from '@prisma/client';
 
 import React from 'react';
 import { Loader2 } from 'lucide-react';
 import { POVList } from '@/components/pov/POVList';
+import { GeographicalFilter } from '@/components/pov/GeographicalFilter';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { UserRole } from '@/lib/types/auth';
 
@@ -12,12 +14,15 @@ export default function POVListPage() {
   const [povs, setPovs] = React.useState<PoVDetails[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<Error | null>(null);
+  const [filters, setFilters] = React.useState<PoVFilters>({});
   const { user, hasRole } = useAuth();
   const isAdmin = user && hasRole(UserRole.ADMIN);
 
+  // Initial fetch of POVs
   React.useEffect(() => {
     async function fetchPOVs() {
       try {
+        setLoading(true);
         const response = await fetch('/api/pov');
         if (!response.ok) {
           throw new Error('Failed to fetch POVs');
@@ -33,6 +38,21 @@ export default function POVListPage() {
 
     fetchPOVs();
   }, []);
+  
+  const handleFilterChange = (geoFilters: {
+    salesTheatre?: SalesTheatre;
+    regionId?: string;
+    countryId?: string;
+  }) => {
+    // For now, just log the filters
+    console.log('Filters changed:', geoFilters);
+    
+    // In a real implementation, we would update the filters state and fetch filtered POVs
+    // setFilters(prevFilters => ({
+    //   ...prevFilters,
+    //   ...geoFilters
+    // }));
+  };
 
   if (loading) {
     return (
@@ -63,7 +83,14 @@ export default function POVListPage() {
         </p>
       </div>
 
-      <POVList povs={povs} />
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-1">
+          <GeographicalFilter onFilterChange={handleFilterChange} />
+        </div>
+        <div className="lg:col-span-3">
+          <POVList povs={povs} />
+        </div>
+      </div>
     </div>
   );
 }

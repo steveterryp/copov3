@@ -2,12 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/auth/get-auth-user';
 import { geographicalService } from '@/lib/services/geographicalService';
 import { ApiError } from '@/lib/errors';
-import { SalesTheatre } from '@prisma/client';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { theatre: string } }
-) {
+export async function GET(request: NextRequest) {
   try {
     // Verify authentication
     const user = await getAuthUser(request);
@@ -15,18 +11,8 @@ export async function GET(
       throw new ApiError('UNAUTHORIZED', 'Unauthorized');
     }
 
-    const { theatre } = params;
-    if (!theatre) {
-      throw new ApiError('BAD_REQUEST', 'Theatre is required');
-    }
-
-    // Validate theatre
-    if (!Object.values(SalesTheatre).includes(theatre as SalesTheatre)) {
-      throw new ApiError('BAD_REQUEST', 'Invalid theatre');
-    }
-
-    // Get countries by theatre
-    const countries = await geographicalService.getCountriesByTheatre(theatre as SalesTheatre);
+    // Get all countries
+    const countries = await geographicalService.getAllCountries();
 
     // Map countries to a simpler format
     const mappedCountries = countries.map(country => ({
@@ -50,7 +36,7 @@ export async function GET(
       );
     }
     
-    console.error('Error fetching countries by theatre:', error);
+    console.error('Error fetching countries:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

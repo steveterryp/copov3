@@ -4,7 +4,7 @@ import { handleApiError } from '@/lib/api-handler';
 
 export async function GET(req: NextRequest) {
   try {
-    const regions = await geographicalService.getRegions();
+    const regions = await geographicalService.getAllRegions();
     return NextResponse.json(regions);
   } catch (error) {
     return handleApiError(error);

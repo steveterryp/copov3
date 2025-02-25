@@ -1,10 +1,26 @@
 import { prisma } from "@/lib/prisma"
-import { Phase, PhaseTemplate, PhaseType, Prisma } from "@prisma/client"
+import { Phase, PhaseTemplate, PhaseType, Prisma, StageStatus } from "@prisma/client"
 import { PhaseTemplateCreateInput, PhaseTemplateUpdateInput, WorkflowStage, PhaseDetails } from "../types/phase"
 
 const defaultPhaseDetails: PhaseDetails = {
   tasks: [],
   metadata: {},
+}
+
+export interface CreateStageInput {
+  name: string;
+  description?: string;
+  order: number;
+  status?: StageStatus;
+  metadata?: Record<string, any>;
+}
+
+export interface UpdateStageInput {
+  name?: string;
+  description?: string;
+  status?: StageStatus;
+  order?: number;
+  metadata?: Record<string, any>;
 }
 
 export class PhaseService {
@@ -146,7 +162,7 @@ export class PhaseService {
 
   async createPhase(data: {
     povId: string;
-    templateId: string;
+    templateId?: string | null;
     name: string;
     description: string;
     startDate: Date;
@@ -230,6 +246,186 @@ export class PhaseService {
     )
 
     return this.getPoVPhases(povId)
+  }
+
+  // Stage Management
+  async getStages(phaseId: string) {
+    return prisma.stage.findMany({
+      where: { phaseId },
+      include: {
+        tasks: {
+          orderBy: {
+            order: 'asc',
+          },
+        },
+      },
+      orderBy: {
+        order: 'asc',
+      },
+    })
+  }
+
+  async getStage(id: string) {
+    return prisma.stage.findUnique({
+      where: { id },
+      include: {
+        tasks: {
+          orderBy: {
+            order: 'asc',
+          },
+        },
+      },
+    })
+  }
+
+  async createStage(phaseId: string, data: CreateStageInput) {
+    return prisma.stage.create({
+      data: {
+        ...data,
+        phaseId,
+        status: data.status || StageStatus.PENDING,
+        metadata: data.metadata ? JSON.parse(JSON.stringify(data.metadata)) as Prisma.InputJsonValue : undefined,
+      },
+      include: {
+        tasks: true,
+      },
+    })
+  }
+
+  async updateStage(id: string, data: UpdateStageInput) {
+    const currentStage = await prisma.stage.findUnique({ where: { id } })
+    if (!currentStage) throw new Error("Stage not found")
+
+    const metadata = data.metadata || currentStage.metadata
+
+    return prisma.stage.update({
+      where: { id },
+      data: {
+        ...data,
+        metadata: metadata ? JSON.parse(JSON.stringify(metadata)) as Prisma.InputJsonValue : undefined,
+      },
+      include: {
+        tasks: true,
+      },
+    })
+  }
+
+  async deleteStage(id: string) {
+    return prisma.stage.delete({ where: { id } })
+  }
+
+  async reorderStages(phaseId: string, stageIds: string[]) {
+    // Verify all stages belong to the phase
+    const stages = await prisma.stage.findMany({
+      where: { phaseId, id: { in: stageIds } },
+    })
+
+    if (stages.length !== stageIds.length) {
+      throw new Error("Some stage IDs are invalid or do not belong to this phase")
+    }
+
+    // Update order of each stage
+    await Promise.all(
+      stageIds.map((id, index) =>
+        prisma.stage.update({
+          where: { id },
+          data: { order: index },
+        })
+      )
+    )
+
+    return prisma.stage.findMany({
+      where: { phaseId },
+      orderBy: { order: 'asc' },
+      include: {
+        tasks: {
+          orderBy: {
+            order: 'asc',
+          },
+        },
+      },
+    })
+  }
+
+  // Task Management
+  async moveTask(taskId: string, newStageId: string, newOrder: number) {
+    const task = await prisma.task.findUnique({ where: { id: taskId } })
+    if (!task) throw new Error("Task not found")
+
+    const stage = await prisma.stage.findUnique({ where: { id: newStageId } })
+    if (!stage) throw new Error("Stage not found")
+
+    // Get tasks in the target stage
+    const stageTasks = await prisma.task.findMany({
+      where: { stageId: newStageId },
+      orderBy: { order: 'asc' },
+    })
+
+    // Reorder tasks
+    const updatedTasks = await prisma.$transaction(async (tx) => {
+      // Move the task to the new stage
+      await tx.task.update({
+        where: { id: taskId },
+        data: { stageId: newStageId, order: newOrder },
+      })
+
+      // Reorder other tasks in the stage
+      for (let i = newOrder; i < stageTasks.length; i++) {
+        if (stageTasks[i].id !== taskId) {
+          await tx.task.update({
+            where: { id: stageTasks[i].id },
+            data: { order: i + 1 },
+          })
+        }
+      }
+
+      return tx.task.findMany({
+        where: { stageId: newStageId },
+        orderBy: { order: 'asc' },
+      })
+    })
+
+    return updatedTasks
+  }
+
+  async createTask(stageId: string, data: {
+    title: string;
+    description?: string;
+    assigneeId?: string;
+    dueDate?: Date;
+    priority?: 'HIGH' | 'MEDIUM' | 'LOW';
+    metadata?: Record<string, any>;
+  }) {
+    const stage = await prisma.stage.findUnique({
+      where: { id: stageId },
+      include: {
+        phase: true,
+        tasks: {
+          orderBy: {
+            order: 'asc',
+          },
+        },
+      },
+    })
+
+    if (!stage) throw new Error("Stage not found")
+
+    // Get the highest order in the stage
+    const maxOrder = stage.tasks.length > 0
+      ? Math.max(...stage.tasks.map(t => t.order))
+      : -1
+
+    return prisma.task.create({
+      data: {
+        ...data,
+        stageId,
+        phaseId: stage.phaseId,
+        povId: stage.phase.povId,
+        order: maxOrder + 1,
+        status: 'OPEN',
+        metadata: data.metadata ? JSON.parse(JSON.stringify(data.metadata)) as Prisma.InputJsonValue : undefined,
+      },
+    })
   }
 }
 

@@ -10,8 +10,8 @@ export async function GET(
   { params }: { params: { povId: string } }
 ) {
   try {
-    const response = await getAvailableTeamMembersHandler(req, params.povId);
-    return NextResponse.json(response);
+    const members = await getAvailableTeamMembersHandler(req, params.povId);
+    return NextResponse.json(members);
   } catch (error) {
     console.error('[Available Team Members Error]:', error);
     return NextResponse.json(

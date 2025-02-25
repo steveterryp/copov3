@@ -1,7 +1,5 @@
 'use client';
 
-'use client';
-
 import React, { Suspense } from 'react';
 import ActivePoVs from '@/components/dashboard/widgets/ActivePoVs';
 import TeamStatus from '@/components/dashboard/widgets/TeamStatus';
@@ -9,6 +7,7 @@ import SuccessRate from '@/components/dashboard/widgets/SuccessRate';
 import RiskOverview from '@/components/dashboard/widgets/RiskOverview';
 import ResourceUsage from '@/components/dashboard/widgets/ResourceUsage';
 import Milestones from '@/components/dashboard/widgets/Milestones';
+import GeoDistribution from '@/components/dashboard/widgets/GeoDistribution';
 import WidgetSkeleton from '@/components/dashboard/widgets/WidgetSkeleton';
 import WidgetErrorBoundary from '@/components/dashboard/widgets/WidgetErrorBoundary';
 
@@ -53,6 +52,11 @@ export default function DashboardPage() {
         <div>
           <WidgetWrapper>
             <TeamStatus />
+          </WidgetWrapper>
+        </div>
+        <div>
+          <WidgetWrapper>
+            <GeoDistribution />
           </WidgetWrapper>
         </div>
       </div>

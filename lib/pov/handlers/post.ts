@@ -124,7 +124,7 @@ export async function createPhaseHandler(
     ...validatedData.data,
     povId,
     order,
-    templateId: validatedData.data.templateId,
+    templateId: validatedData.data.templateId || null,
   });
 
   // Return the phase data directly

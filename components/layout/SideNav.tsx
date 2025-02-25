@@ -49,6 +49,11 @@ const navItems = [
         title: 'Launch Management',
         path: '/pov/launch',
         icon: <Rocket className="h-4 w-4" />
+      },
+      {
+        title: 'Kanban Boards',
+        path: '/pov/kanban',
+        icon: <ClipboardList className="h-4 w-4" />
       }
     ]
   },

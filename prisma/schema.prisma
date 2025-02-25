@@ -132,11 +132,30 @@ model Phase {
   updatedAt   DateTime       @updatedAt
   pov         POV            @relation(fields: [povId], references: [id], onDelete: Cascade)
   template    PhaseTemplate? @relation(fields: [templateId], references: [id])
+  stages      Stage[]
   tasks       Task[]
 
   @@index([povId])
   @@index([templateId])
   @@index([startDate, endDate])
+}
+
+model Stage {
+  id          String      @id @default(cuid())
+  phaseId     String
+  phase       Phase       @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  status      StageStatus @default(PENDING)
+  order       Int
+  tasks       Task[]
+  metadata    Json?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([phaseId])
+  @@index([status])
+  @@map("stages")
 }
 
 model Comment {
@@ -184,9 +203,12 @@ model Task {
   teamId      String?        @map("team_id")
   povId       String?        @map("pov_id")
   phaseId     String?        @map("phase_id")
+  stageId     String?        @map("stage_id")
+  order       Int            @default(0)
   dueDate     DateTime?      @map("due_date")
   priority    TaskPriority   @default(MEDIUM)
   status      TaskStatus     @default(OPEN)
+  metadata    Json?
   createdAt   DateTime       @default(now()) @map("created_at")
   updatedAt   DateTime       @updatedAt @map("updated_at")
   attachments Attachment[]
@@ -194,9 +216,11 @@ model Task {
   activities  TaskActivity[]
   assignee    User?          @relation("TaskAssignee", fields: [assigneeId], references: [id])
   phase       Phase?         @relation(fields: [phaseId], references: [id])
+  stage       Stage?         @relation(fields: [stageId], references: [id])
   pov         POV?           @relation(fields: [povId], references: [id])
   team        Team?          @relation(fields: [teamId], references: [id])
 
+  @@index([stageId])
   @@map("tasks")
 }
 
@@ -606,4 +630,11 @@ enum SalesTheatre {
   LAC
   EMEA
   APJ
+}
+
+enum StageStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  BLOCKED
 }

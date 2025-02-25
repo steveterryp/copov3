@@ -57,15 +57,15 @@ export default function EditPhasePage({ params }: { params: { povId: string; pha
         if (!response.ok) {
           throw new Error('Failed to fetch phase');
         }
-        const { data } = await response.json();
+        const { phase } = await response.json();
         
         // Set form defaults with fetched data
         form.reset({
-          name: data.name,
-          description: data.description,
-          type: data.type,
-          startDate: new Date(data.startDate),
-          endDate: new Date(data.endDate),
+          name: phase.name,
+          description: phase.description,
+          type: phase.type,
+          startDate: new Date(phase.startDate),
+          endDate: new Date(phase.endDate),
         });
       } catch (err) {
         setError(err instanceof Error ? err : new Error('An error occurred'));

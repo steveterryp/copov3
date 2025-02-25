@@ -9,43 +9,16 @@ import {
   CardContent,
 } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { GeoDistributionWidget } from '@/components/dashboard/GeoDistributionWidget';
-import { useGeographicalDistribution } from '@/lib/hooks/useGeographicalDistribution';
 
 export default function AdminDashboardPage() {
-  const { data: geoData, isLoading: geoLoading } = useGeographicalDistribution();
   return (
     <div className="p-6">
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">POV Analytics</h1>
+          <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
           <p className="text-muted-foreground">
-            Overview of POV distribution and metrics.
+            System administration and configuration.
           </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Geographical Distribution</CardTitle>
-              <CardDescription>
-                POV distribution across regions and countries
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {geoLoading ? (
-                <div className="flex justify-center items-center h-[300px]">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-                </div>
-              ) : geoData ? (
-                <GeoDistributionWidget data={geoData} />
-              ) : (
-                <div className="flex justify-center items-center h-[300px] text-muted-foreground">
-                  No geographical data available
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
 
         <div>

@@ -147,7 +147,7 @@ export const createPhaseSchema = z.object({
   type: z.nativeEnum(PhaseType),
   startDate: z.union([z.string(), z.date()]).transform((val) => new Date(val)),
   endDate: z.union([z.string(), z.date()]).transform((val) => new Date(val)),
-  templateId: z.string(),
+  templateId: z.string().optional(),
 });
 
 export const updatePhaseSchema = createPhaseSchema.extend({

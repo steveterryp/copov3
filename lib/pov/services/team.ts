@@ -8,18 +8,21 @@ export class TeamService {
    */
   static async getAvailableMembers({ povId, ownerId }: TeamMemberSelection) {
     try {
-      return await prisma.user.findMany({
+      console.log('[TeamService.getAvailableMembers] Fetching available members for POV:', povId);
+      console.log('[TeamService.getAvailableMembers] Excluding owner:', ownerId);
+      
+      const users = await prisma.user.findMany({
         where: {
           status: 'ACTIVE',
-          NOT: {
-            id: ownerId,
-          },
         },
         select: teamMemberSelect,
         orderBy: {
           name: 'asc',
         },
       });
+      
+      console.log('[TeamService.getAvailableMembers] Found users:', users.length);
+      return users;
     } catch (error) {
       console.error('[TeamService.getAvailableMembers]:', error);
       throw error;

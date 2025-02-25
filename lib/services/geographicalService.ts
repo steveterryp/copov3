@@ -1,203 +1,213 @@
-import { PrismaClient, SalesTheatre, Region, Country, POV } from '@prisma/client';
-import { z } from 'zod';
-import { BaseValidator } from '../validation/base';
-import { prisma } from '../prisma';
+import { prisma } from '@/lib/prisma';
+import { SalesTheatre } from '@prisma/client';
 
-// Define RegionType locally to match schema
-type RegionType = 'NORTH' | 'SOUTH' | 'EAST' | 'WEST' | 'CENTRAL';
-
-// Types
-export interface PoVGeographicalData {
-  salesTheatre: SalesTheatre;
-  countryId: string;
+interface GeographicalConsistencyParams {
+  salesTheatre?: SalesTheatre;
+  countryId?: string;
   regionId?: string;
 }
 
-interface RegionResponse {
-  id: string;
-  name: string;
-  type: RegionType;
-}
-
-interface CountryWithRegions {
-  id: string;
-  name: string;
-  code: string;
-  theatre: SalesTheatre;
-  createdAt: Date;
-  updatedAt: Date;
-  regions: RegionResponse[];
-}
-
-// Validation
-const povGeographicalSchema = z.object({
-  salesTheatre: z.enum(['NORTH_AMERICA', 'LAC', 'EMEA', 'APJ']),
-  countryId: z.string(),
-  regionId: z.string().optional(),
-}) satisfies z.ZodType<PoVGeographicalData>;
-
-export class PoVGeographicalValidator extends BaseValidator<PoVGeographicalData> {
-  constructor() {
-    super(povGeographicalSchema);
-  }
-
-  async validateGeographicalConsistency(data: PoVGeographicalData): Promise<boolean> {
-    if (!data.regionId) {
+export class PoVGeographicalValidator {
+  /**
+   * Validate that the geographical data is consistent
+   * - If regionId is provided, it must belong to the specified country
+   * - If countryId is provided, it must belong to the specified theatre
+   */
+  async validateGeographicalConsistency(params: GeographicalConsistencyParams): Promise<boolean> {
+    const { salesTheatre, countryId, regionId } = params;
+    
+    // If no geographical data provided, it's valid
+    if (!salesTheatre && !countryId && !regionId) {
       return true;
     }
-
-    const region = await prisma.region.findFirst({
-      where: {
-        id: data.regionId,
-        countryId: data.countryId
+    
+    // If regionId is provided, check that it belongs to the specified country
+    if (regionId && countryId) {
+      const region = await prisma.region.findUnique({
+        where: { id: regionId },
+        select: { countryId: true },
+      });
+      
+      if (!region || region.countryId !== countryId) {
+        return false;
       }
-    });
-
-    return region !== null;
+    }
+    
+    // If countryId is provided, check that it belongs to the specified theatre
+    if (countryId && salesTheatre) {
+      const country = await prisma.country.findUnique({
+        where: { id: countryId },
+        select: { theatre: true },
+      });
+      
+      if (!country || country.theatre !== salesTheatre) {
+        return false;
+      }
+    }
+    
+    return true;
   }
 }
 
-// Service Implementation
 export class GeographicalService {
-  private validator: PoVGeographicalValidator;
-
-  constructor(private prisma: PrismaClient) {
-    this.validator = new PoVGeographicalValidator();
-  }
-
-  // Region Operations
-  async getRegions(): Promise<Region[]> {
-    return this.prisma.region.findMany({
-      include: {
-        country: true
-      },
+  /**
+   * Get all regions
+   */
+  async getAllRegions() {
+    return prisma.region.findMany({
       orderBy: {
-        name: 'asc'
-      }
-    });
-  }
-
-  // Country Operations
-  async getCountriesByRegion(regionId: string): Promise<CountryWithRegions[]> {
-    const region = await this.prisma.region.findUnique({
-      where: { id: regionId },
-      include: {
-        country: {
-          include: {
-            regions: {
-              select: {
-                id: true,
-                name: true,
-                type: true
-              }
-            }
-          }
-        }
-      }
-    });
-
-    return region ? [region.country] : [];
-  }
-
-  async getCountriesByTheatre(theatre: SalesTheatre): Promise<CountryWithRegions[]> {
-    return this.prisma.country.findMany({
-      where: { theatre },
-      include: {
-        regions: {
-          select: {
-            id: true,
-            name: true,
-            type: true
-          }
-        }
+        name: 'asc',
       },
-      orderBy: {
-        name: 'asc'
-      }
-    });
-  }
-
-  // PoV Geographical Operations
-  async updatePoVGeography(
-    poVId: string,
-    data: PoVGeographicalData
-  ): Promise<POV> {
-    // Validate data
-    await this.validator.validateData(data);
-
-    // Validate geographical consistency
-    if (data.regionId) {
-      const isValid = await this.validator.validateGeographicalConsistency(data);
-      if (!isValid) {
-        throw new Error('Invalid geographical combination: region does not belong to specified country');
-      }
-    }
-
-    return this.prisma.pOV.update({
-      where: { id: poVId },
-      data,
       include: {
         country: true,
-        region: true,
       },
     });
   }
 
-  // Analytics Operations
-  async getGeographicalDistribution(): Promise<{
-    byTheatre: Record<SalesTheatre, number>;
-    byRegion: Record<string, { name: string; count: number }>;
-    byCountry: Record<string, { name: string; count: number }>;
-  }> {
-    const [povs, regions, countries] = await Promise.all([
-      this.prisma.pOV.groupBy({
-        by: ['salesTheatre'],
-        _count: true
-      }),
-      this.prisma.region.findMany({
-        include: {
-          _count: {
-            select: {
-              povs: true
-            }
-          }
-        }
-      }),
-      this.prisma.country.findMany({
-        include: {
-          _count: {
-            select: {
-              povs: true
-            }
-          }
-        }
-      })
-    ]);
+  /**
+   * Get regions by country
+   */
+  async getRegionsByCountry(countryId: string) {
+    return prisma.region.findMany({
+      where: {
+        countryId,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+  }
 
-    return {
-      byTheatre: povs.reduce((acc, stat) => {
-        acc[stat.salesTheatre] = stat._count;
-        return acc;
-      }, {} as Record<SalesTheatre, number>),
+  /**
+   * Get all countries
+   */
+  async getAllCountries() {
+    return prisma.country.findMany({
+      orderBy: {
+        name: 'asc',
+      },
+      include: {
+        regions: true,
+      },
+    });
+  }
 
-      byRegion: regions.reduce((acc, region) => {
-        acc[region.id] = {
-          name: region.name,
-          count: region._count.povs
-        };
-        return acc;
-      }, {} as Record<string, { name: string; count: number }>),
+  /**
+   * Get countries by theatre
+   */
+  async getCountriesByTheatre(theatre: SalesTheatre) {
+    return prisma.country.findMany({
+      where: {
+        theatre,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+      include: {
+        regions: true,
+      },
+    });
+  }
 
-      byCountry: countries.reduce((acc, country) => {
+  /**
+   * Get country by region
+   */
+  async getCountryByRegion(regionId: string) {
+    const region = await prisma.region.findUnique({
+      where: {
+        id: regionId,
+      },
+      include: {
+        country: true,
+      },
+    });
+
+    return region?.country;
+  }
+
+  /**
+   * Get geographical distribution of POVs
+   */
+  async getGeographicalDistribution() {
+    // Get counts by theatre
+    const theatreCounts = await prisma.pOV.groupBy({
+      by: ['salesTheatre'],
+      _count: {
+        id: true,
+      },
+    });
+
+    // Get counts by country
+    const countryCounts = await prisma.pOV.groupBy({
+      by: ['countryId'],
+      _count: {
+        id: true,
+      },
+    });
+
+    // Get counts by region
+    const regionCounts = await prisma.pOV.groupBy({
+      by: ['regionId'],
+      _count: {
+        id: true,
+      },
+    });
+
+    // Get country and region details
+    const countries = await prisma.country.findMany({
+      include: {
+        regions: true,
+      },
+    });
+
+    // Format the results
+    const byTheatre = theatreCounts.reduce((acc, item) => {
+      acc[item.salesTheatre] = item._count.id;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const byCountry = countryCounts.reduce((acc, item) => {
+      const country = countries.find((c) => c.id === item.countryId);
+      if (country) {
         acc[country.id] = {
           name: country.name,
-          count: country._count.povs
+          code: country.code,
+          count: item._count.id,
         };
-        return acc;
-      }, {} as Record<string, { name: string; count: number }>)
+      }
+      return acc;
+    }, {} as Record<string, { name: string; code: string; count: number }>);
+
+    const byRegion = regionCounts.reduce((acc, item) => {
+      if (!item.regionId) return acc;
+      
+      let regionName = 'Unknown';
+      let countryId = '';
+      
+      for (const country of countries) {
+        const region = country.regions.find((r) => r.id === item.regionId);
+        if (region) {
+          regionName = region.name;
+          countryId = country.id;
+          break;
+        }
+      }
+      
+      acc[item.regionId] = {
+        name: regionName,
+        countryId,
+        count: item._count.id,
+      };
+      
+      return acc;
+    }, {} as Record<string, { name: string; countryId: string; count: number }>);
+
+    return {
+      byTheatre,
+      byCountry,
+      byRegion,
     };
   }
 }
 
-// Export singleton instance
-export const geographicalService = new GeographicalService(prisma);
+export const geographicalService = new GeographicalService();

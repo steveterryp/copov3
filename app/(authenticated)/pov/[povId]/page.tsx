@@ -19,6 +19,7 @@ import {
   Plus,
   Loader2,
 } from 'lucide-react';
+import { LocationDisplay } from '@/components/ui/LocationDisplay';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useDateFormat } from '@/lib/hooks/useDateFormat';
@@ -225,6 +226,18 @@ export default function PoVDetailPage({ params }: { params: { povId: string } })
                 </span>
               </div>
             )}
+            
+            {/* Geographical Information */}
+            {(pov.salesTheatre || pov.country || pov.region) && (
+              <div className="mt-4 border-t pt-4">
+                <h3 className="text-sm font-medium mb-2">Location</h3>
+                <LocationDisplay 
+                  salesTheatre={pov.salesTheatre}
+                  country={pov.country}
+                  region={pov.region}
+                />
+              </div>
+            )}
           </div>
 
           {(isAdmin || isTeamMember) && pov.team && (
@@ -274,15 +287,24 @@ export default function PoVDetailPage({ params }: { params: { povId: string } })
                         <span className="text-sm text-muted-foreground">
                           {formatDate(phase.startDate)} - {formatDate(phase.endDate)}
                         </span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => router.push(`/pov/${params.povId}/phase/${phase.id}/tasks`)}
-                          className="gap-2"
-                        >
-                          <Plus className="h-4 w-4" />
-                          Manage Tasks
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => router.push(`/pov/${params.povId}/phase/${phase.id}`)}
+                            className="gap-2"
+                          >
+                            View Details
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => router.push(`/pov/${params.povId}/phase/${phase.id}/kanban`)}
+                            className="gap-2"
+                          >
+                            Kanban Board
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     {canEdit && (

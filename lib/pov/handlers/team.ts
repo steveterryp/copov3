@@ -51,8 +51,8 @@ export async function getAvailableTeamMembersHandler(
       teamId: pov.teamId || undefined,
     });
 
-    // Return the data directly without wrapping it in a data property
-    return Response.json(availableMembers.map(mapTeamMemberFromPrisma));
+    // Return the data directly
+    return availableMembers.map(mapTeamMemberFromPrisma);
   } catch (error) {
     console.error('[getAvailableTeamMembersHandler]:', error);
     throw error;

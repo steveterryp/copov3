@@ -138,11 +138,7 @@ export function POVList({ povs }: PoVListProps) {
               )}
             </div>
 
-            {isAdmin && pov.team?.members?.length > 0 && (
-              <div className="mt-3 pt-3 border-t text-xs text-muted-foreground">
-                Team Members: {pov.team.members.map((m: { user: { name: string } }) => m.user.name).join(', ')}
-              </div>
-            )}
+            {/* Team members section removed until team type is updated */}
           </CardContent>
         </Card>
       ))}
